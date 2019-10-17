@@ -10,7 +10,7 @@ pipeline {
   }
   environment {
     DB_HOST = 'hel.krvd.ru'
-    DB_USER = 'ncedu'
+    DB_USERNAME = 'ncedu'
     DB_PASSWORD = 'rpVA9xJcJEs'
   }
 }
