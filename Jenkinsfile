@@ -7,6 +7,11 @@ pipeline {
         echo 'Build step'
       }
     }
+    stage('Tests') {
+      steps {
+        sh 'mvn test'
+      }
+    }
   }
   environment {
     DB_HOST = 'hel.krvd.ru'
