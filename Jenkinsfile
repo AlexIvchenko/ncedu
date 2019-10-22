@@ -12,10 +12,18 @@ pipeline {
         sh 'mvn test'
       }
     }
+    stage('Deploy') {
+      steps {
+        sh '''service ncedu stop
+cp target/*.jar /home/spring/app.jar
+service ncedu start'''
+      }
+    }
   }
   environment {
     DB_HOST = 'hel.krvd.ru'
     DB_USERNAME = 'ncedu'
     DB_PASSWORD = 'rpVA9xJcJEs'
+    DB_DATABASE = 'ncedu'
   }
 }
