@@ -14,9 +14,9 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh '''service ncedu stop
+        sh '''/usr/sbin/service ncedu stop
 cp target/*.jar /home/spring/app.jar
-service ncedu start'''
+/usr/sbin/service ncedu start'''
       }
     }
   }
