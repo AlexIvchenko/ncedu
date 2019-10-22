@@ -14,9 +14,9 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh '''if [ -f /home/spring/app.jar ]; then systemctl stop ncedu; fi
+        sh '''if [ -f /home/spring/app.jar ]; then sudo systemctl stop ncedu; fi
 cp target/*.jar /home/spring/app.jar
-systemctl start ncedu'''
+sudo systemctl start ncedu'''
       }
     }
   }
