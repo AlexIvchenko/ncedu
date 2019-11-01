@@ -1,4 +1,4 @@
-package com.ncedu.nc_edu.services;
+package com.ncedu.nc_edu.Exceptions;
 
 public class EmailAlreadyExistsException extends Exception {
     public EmailAlreadyExistsException() {
