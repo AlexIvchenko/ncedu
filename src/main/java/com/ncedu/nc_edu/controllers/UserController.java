@@ -1,8 +1,8 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.Exceptions.UserWithGivenIdDoesntExists;
+import com.ncedu.nc_edu.exceptions.UserWithGivenIdDoesntExist;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.Exceptions.EmailAlreadyExistsException;
+import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
 import com.ncedu.nc_edu.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,10 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -74,7 +70,7 @@ public class UserController {
 
         try {
             return userService.updateUserInfo(id, username, birthday, userGender, height, weight);
-        } catch (UserWithGivenIdDoesntExists e) {
+        } catch (UserWithGivenIdDoesntExist e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no user with the given id");
         }
     }
