@@ -1,35 +1,41 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.exceptions.UserWithGivenIdDoesntExist;
+import com.ncedu.nc_edu.dto.UserDto;
+import com.ncedu.nc_edu.dto.UserMapper;
+import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
 import com.ncedu.nc_edu.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Date;
+import javax.validation.Valid;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class UserController {
     private UserService userService;
+    private UserMapper userMapper;
 
-    public UserController(@Autowired UserService userService) {
+    public UserController(@Autowired UserService userService, @Autowired UserMapper userMapper) {
         this.userService = userService;
+        this.userMapper = userMapper;
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/register")
+    @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public User addUser(
+    public UserDto addUser(
             @RequestParam String email,
             @RequestParam String password
-            ) {
-
+            )
+    {
         // TODO validation
-
         User user;
 
         try {
@@ -38,41 +44,28 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists", ex);
         }
 
-        return user;
+        return userMapper.toDto(user);
     }
 
-    //url для отладки
     @GetMapping(value = "/users")
     @ResponseBody
     public List<User> showAllUsers() {
         return userService.findAllUsers();
     }
 
-    //Поменяем на Put
-    @PostMapping(value = "/users")
+    @PutMapping(value = "/users/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public User updateUser(
-            @RequestParam Long id,
-            @RequestParam String username,
-            @RequestParam
-            @DateTimeFormat(pattern="yyyy-MM-dd") Date birthday,
-            @RequestParam String gender,
-            @RequestParam Long height,
-            @RequestParam Integer weight
-            )
+            @PathVariable UUID id,
+            @Valid @RequestBody UserDto userDto)
     {
-        User.Gender userGender;
+        userDto.setId(id);
+        User user = userMapper.toEntity(userDto);
 
         try {
-            userGender = User.Gender.valueOf(gender);
-        } catch (IllegalArgumentException e) {
-            userGender = null;
-        }
-
-        try {
-            return userService.updateUserInfo(id, username, birthday, userGender, height, weight);
-        } catch (UserWithGivenIdDoesntExist e) {
+            return userService.updateUser(user);
+        } catch (UserDoesNotExistsException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no user with the given id");
         }
     }
-
 }

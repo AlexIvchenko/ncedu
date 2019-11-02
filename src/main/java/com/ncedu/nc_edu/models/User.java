@@ -1,8 +1,10 @@
 package com.ncedu.nc_edu.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.id.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,20 +16,18 @@ import java.util.*;
 
 @Entity
 @Table(name = "users", schema = "public")
-@Getter
-@Setter
+@Data
 public class User {
     public enum Gender {
         MALE, FEMALE, UNKNOWN;
-
         Gender() {
         }
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    @org.hibernate.annotations.Type(type = "uuid-char")
+    private UUID id;
 
     @Column(name = "email")
     private String email;
@@ -36,7 +36,6 @@ public class User {
     private String username;
 
     @Column(name = "password")
-    @JsonIgnore
     private String password;
 
     @Column(name = "birthday")
@@ -52,7 +51,6 @@ public class User {
     private int weight;
 
     @Column(name = "enabled")
-    @JsonIgnore
     private boolean enabled;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -61,17 +59,14 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<UserRole> roles;
 
-    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
-    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
-    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }

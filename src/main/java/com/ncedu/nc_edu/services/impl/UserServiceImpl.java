@@ -1,8 +1,8 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.exceptions.UserWithGivenIdDoesntExist;
-import com.ncedu.nc_edu.dao.UserDao;
-import com.ncedu.nc_edu.dao.UserRoleDao;
+import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
+import com.ncedu.nc_edu.repositories.UserRepository;
+import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole;
 import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
@@ -10,30 +10,32 @@ import com.ncedu.nc_edu.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
-    private UserDao userDao;
-    private UserRoleDao userRoleDao;
+    private UserRepository userRepository;
+    private UserRoleRepository userRoleRepository;
 
     public UserServiceImpl(
             @Autowired PasswordEncoder passwordEncoder,
-            @Autowired UserDao userDao,
-            @Autowired UserRoleDao userRoleDao
+            @Autowired UserRepository userRepository,
+            @Autowired UserRoleRepository userRoleRepository
     ) {
         this.passwordEncoder = passwordEncoder;
-        this.userDao = userDao;
-        this.userRoleDao = userRoleDao;
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
     }
 
     @Override
     public User registerUser(String email, String password) throws EmailAlreadyExistsException {
         password = passwordEncoder.encode(password);
 
-        if (userDao.findByEmail(email) != null) {
+        if (userRepository.findByEmail(email) != null) {
             throw new EmailAlreadyExistsException();
         }
 
@@ -41,44 +43,34 @@ public class UserServiceImpl implements UserService {
         user.setEmail(email);
         user.setPassword(password);
         user.setEnabled(true);
+        user.setId(UUID.randomUUID());
+        user.setGender(User.Gender.UNKNOWN);
 
-        UserRole role = userRoleDao.findByRole("ROLE_USER");
+        UserRole role = userRoleRepository.findByRole("ROLE_USER").orElseThrow(RuntimeException::new);
         Set<UserRole> roles = new HashSet<>();
         roles.add(role);
         user.setRoles(roles);
 
-        return userDao.save(user);
+        return userRepository.save(user);
     }
 
     @Override
     public List<User> findAllUsers()
     {
-        List<User> users = new ArrayList<>();
-        userDao.findAll().forEach(users::add);
-        return users;
+        return new ArrayList<>(userRepository.findAll());
     }
 
     @Override
-    public User updateUserInfo(Long id, String username, Date birthday, User.Gender gender, Long height, Integer weight)
-                throws UserWithGivenIdDoesntExist {
-        Optional<User> userOpt = userDao.findById(id);
-        User user = userOpt.orElseThrow(UserWithGivenIdDoesntExist::new);
+    public User updateUser(User user) throws UserDoesNotExistsException {
+        User oldUser = userRepository.findById(user.getId()).orElseThrow(UserDoesNotExistsException::new);
 
-        if (!username.equals(""))
-            user.setUsername(username);
+        // todo to be implemented
 
-        if (birthday != null)
-            user.setBirthday(birthday);
+        return userRepository.save(user);
+    }
 
-        if (gender != null)
-            user.setGender(gender);
-
-        if (height != null && height > 0)
-            user.setHeight(height.intValue());
-
-        if (weight != null && weight > 0)
-            user.setWeight(weight);
-
-        return userDao.save(user);
+    @Override
+    public User findUserById(UUID id) throws UserDoesNotExistsException {
+        return userRepository.findById(id).orElseThrow(UserDoesNotExistsException::new);
     }
 }

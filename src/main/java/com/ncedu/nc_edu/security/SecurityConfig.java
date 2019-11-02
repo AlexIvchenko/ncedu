@@ -21,45 +21,20 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 @Configuration
 @EnableWebSecurity(debug = true)
 public class SecurityConfig {
-/*
-    public static class ApiSecurityAdapter extends WebSecurityConfigurerAdapter {
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/api/**")
-                    .authorizeRequests()
-                    .antMatchers("/api/register").permitAll()
-                    .antMatchers("/api/login").permitAll()
-                    .antMatchers("/api/lost").permitAll()
-                    .anyRequest().authenticated()
-                    .and()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        }
-    }
-*/
     @Configuration
-    public static class WebSecurityAdapter extends WebSecurityConfigurerAdapter {
+    public static class ApiSecurityAdapter extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
                     .csrf().disable()
                     .authorizeRequests()
                     .antMatchers("/admin/**").access("hasRole('ROLE_MODERATOR')")
-                    .antMatchers("/").permitAll()
-                    .antMatchers("/login").permitAll()
                     .antMatchers("/register").permitAll()
                     .anyRequest().authenticated()
                     .and()
-                    .formLogin()
-                    .loginProcessingUrl("/login")
-                    .usernameParameter("email")
-                    .passwordParameter("password")
-                    .defaultSuccessUrl("/test", false)
-                    .failureForwardUrl("/login")
+                    .httpBasic()
                     .and()
-                    .logout()
-                    .invalidateHttpSession(true)
-                    .logoutUrl("/logout")
-                    .logoutSuccessUrl("/");
+                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         }
     }
 
