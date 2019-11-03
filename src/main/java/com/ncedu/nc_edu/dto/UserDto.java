@@ -1,6 +1,8 @@
 package com.ncedu.nc_edu.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -10,8 +12,8 @@ import java.util.Date;
 import java.util.UUID;
 
 @Data
-public class UserDto {
-    @NotNull
+@EqualsAndHashCode(callSuper = false)
+public class UserDto extends RepresentationModel<UserDto> {
     private UUID id;
 
     private String gender;
@@ -24,9 +26,7 @@ public class UserDto {
     @Past
     private Date birthday;
 
-    @PositiveOrZero
-    private int height;
+    private Integer height;
 
-    @PositiveOrZero
-    private int weight;
+    private Integer weight;
 }

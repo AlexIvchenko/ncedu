@@ -1,14 +1,6 @@
 package com.ncedu.nc_edu.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.id.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.*;

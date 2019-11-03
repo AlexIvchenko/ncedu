@@ -1,5 +1,7 @@
 package com.ncedu.nc_edu.services.impl;
 
+import com.ncedu.nc_edu.dto.UserDto;
+import com.ncedu.nc_edu.exceptions.NoAccessException;
 import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;
@@ -12,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
 import java.util.*;
 
 @Service
@@ -60,13 +63,68 @@ public class UserServiceImpl implements UserService {
         return new ArrayList<>(userRepository.findAll());
     }
 
+    /**
+     *
+     * @param userDto user dto from request
+     * @return User model
+     * @throws UserDoesNotExistsException throws if user with given id cannot be found
+     * @throws ParseException throws if parsing error has occurred: {@code ex.getErrorOffset()} represents exact
+     * element with error: 0 - gender, 1 - birthday, 2 - height, 3 - weight
+     */
     @Override
-    public User updateUser(User user) throws UserDoesNotExistsException {
-        User oldUser = userRepository.findById(user.getId()).orElseThrow(UserDoesNotExistsException::new);
+    public User updateUser(UserDto userDto)
+            throws UserDoesNotExistsException, ParseException, EmailAlreadyExistsException
+    {
+        User oldUser = userRepository.findById(userDto.getId()).orElseThrow(UserDoesNotExistsException::new);
 
-        // todo to be implemented
+        if (userDto.getGender() != null) {
+            if (!userDto.getGender().equals(User.Gender.UNKNOWN.toString())) {
+                try {
+                    User.Gender gender = User.Gender.valueOf(userDto.getGender());
+                    oldUser.setGender(User.Gender.valueOf(userDto.getGender()));
+                } catch (IllegalArgumentException ex) {
+                    throw new ParseException("Gender parsing error", 0);
+                }
+            }
+        }
 
-        return userRepository.save(user);
+        if (userDto.getEmail() != null) {
+            if (userRepository.findByEmail(userDto.getEmail()) != null) {
+                oldUser.setEmail(userDto.getEmail());
+            } else {
+                throw new EmailAlreadyExistsException();
+            }
+        }
+
+        if (userDto.getUsername() != null) {
+            oldUser.setUsername(userDto.getUsername());
+        }
+
+        if (userDto.getBirthday() != null) {
+            if (userDto.getBirthday().compareTo(new Date()) < 0) {
+                oldUser.setBirthday(userDto.getBirthday());
+            } else {
+                throw new ParseException("Birthday parsing error", 1);
+            }
+        }
+
+        if (userDto.getHeight() != null) {
+            if (userDto.getHeight() > 0) {
+                oldUser.setHeight(userDto.getHeight());
+            } else {
+                throw new ParseException("Height must be greater than zero", 2);
+            }
+        }
+
+        if (userDto.getWeight() != null) {
+            if (userDto.getWeight() > 0) {
+                oldUser.setWeight(userDto.getWeight());
+            } else {
+                throw new ParseException("Weight must be greater than zero", 3);
+            }
+        }
+
+        return userRepository.save(oldUser);
     }
 
     @Override
