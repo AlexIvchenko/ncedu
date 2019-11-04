@@ -15,10 +15,9 @@ import java.util.UUID;
 @Service
 @Transactional
 public class IngredientServiceImpl implements IngredientService {
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    private final IngredientRepository ingredientRepository;
 
-    public IngredientServiceImpl(IngredientRepository ingredientRepository) {
+    public IngredientServiceImpl(@Autowired IngredientRepository ingredientRepository) {
         this.ingredientRepository = ingredientRepository;
     }
 
