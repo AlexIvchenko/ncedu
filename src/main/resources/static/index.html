@@ -34,16 +34,16 @@
                         </form>
                     </li>
                     <li>
-                        Logout GET
-                        <form action="/logout" method="get">
+                        Logout POST
+                        <form action="/logout" method="post">
                             <input type="submit" value="Log out">
                         </form>
                     </li>
                     <li>
                         Register POST
                         <form action="/register" method="post">
-                            <p><label>email<input type="text" name="email">
-                            <p><label>pass<input type="text" name="password">
+                            <p><label>email<input type="text" name="email"></label></p>
+                            <p><label>pass<input type="text" name="password"></label></p>
                             <input type="submit" value="Add user">
                         </form>
                     </li>
@@ -53,14 +53,14 @@
                 <ul>
                     <li>
                         User update
-                        <form action="/users" method="post">
+                        <form action="/users" method="put">
                             <p><label>id<input type="number" name="id"></label></p>
                             <p><label>name<input type="text" name="username"></label></p>
                             <p><label>birthday<input type="date" name="birthday" pattern="\d{4}-\d{2}-\d{2}"></label></p>
                             <p><label>gender<input type="text" name="gender"></label></p>
                             <p><label>height<input type="number" name="height"></label></p>
                             <p><label>weight<input type="number" name="weight"></label></p>
-                            <input type="submit" name="Update user"></label>
+                            <input type="submit" name="Update user">
                         </form>
                     </li>
                 </ul>
