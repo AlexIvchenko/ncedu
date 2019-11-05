@@ -19,5 +19,6 @@ public class ReceiptController {
     @GetMapping("/receipts")
     public List<Receipt> getAll() {
         // to do
+        return null;
     }
 }
