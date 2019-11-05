@@ -5,18 +5,14 @@ import com.ncedu.nc_edu.models.Ingredient;
 import com.ncedu.nc_edu.services.IngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-@Controller
+@RestController
 public class IngredientController {
     private IngredientService ingredientService;
 
@@ -25,29 +21,32 @@ public class IngredientController {
     }
 
     @GetMapping(value = "/ingredients")
-    @ResponseBody
-    public List<Ingredient> getAllIngredients() {
+    public List<Ingredient> getAll(@RequestParam(required = false) String name) {
+        if (name != null)
+            return ingredientService.findByName(name);
         return ingredientService.findAll();
     }
 
     @GetMapping(value = "/ingredients/{id}")
-    @ResponseBody
-    public Ingredient getIngredientById(@PathVariable UUID id) {
+    public Ingredient getById(@PathVariable UUID id) {
         try {
             return ingredientService.findById(id);
         } catch (IngredientDoesNotExist e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no such ingredient");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no such an ingredient");
         }
     }
 
-    @PutMapping(value = "/ingredients")
-    @ResponseBody
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
-    public Ingredient updateIngredient(Ingredient ingredient) {
+    @PostMapping(value = "/ingredients")
+    public Ingredient add(@RequestParam @NotNull String name) {
+        return ingredientService.add(name);
+    }
+
+    @PutMapping(value = "/ingredients/{id}")
+    public Ingredient update(@PathVariable UUID id, @RequestBody Ingredient ingredient) {
         try {
             return ingredientService.update(ingredient);
         } catch (IngredientDoesNotExist e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no such ingredient");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no ingredient with the given id");
         }
     }
 }

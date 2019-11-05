@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class UserDto extends RepresentationModel<UserDto> {
+public class UserResource extends RepresentationModel<UserResource> {
     private UUID id;
 
     private String gender;

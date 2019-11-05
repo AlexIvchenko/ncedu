@@ -3,9 +3,8 @@ package com.ncedu.nc_edu.models;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -23,4 +22,15 @@ public class Receipt {
     private Float fats;
     private Float carbohydrates;
     private Float rating;
+
+    @OneToMany(mappedBy = "receipt")
+    private Set<IngredientsReceiptsDTO> ingredientsReceiptsDTOs;
+
+    @ManyToMany
+    @JoinTable(
+            name = "tags_receipts",
+            joinColumns = @JoinColumn(name = "receipt_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags;
 }

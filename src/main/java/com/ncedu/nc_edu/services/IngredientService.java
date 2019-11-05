@@ -12,8 +12,8 @@ import java.util.UUID;
 @Transactional
 public interface IngredientService {
     Ingredient findById(UUID id) throws IngredientDoesNotExist;
-    List<Ingredient> findIngredientsByName(String pattern);
-    Ingredient updateIngredient(Ingredient ingredient) throws IngredientDoesNotExist;
-    Ingredient addIngredient(String name);
+    List<Ingredient> findByName(String pattern);
+    Ingredient update(Ingredient ingredient) throws IngredientDoesNotExist;
+    Ingredient add(String name);
     List<Ingredient> findAll();
 }

@@ -10,6 +10,6 @@ import javax.persistence.*;
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "user_filters")
 public class UserFilter extends Filter {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.ALL)
     private User creator;
 }

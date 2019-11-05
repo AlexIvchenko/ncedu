@@ -2,6 +2,7 @@ package com.ncedu.nc_edu.models;
 
 import lombok.Data;
 import lombok.ToString;
+import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -52,6 +53,16 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<UserRole> roles;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<UserFilter> userFilters;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<UserReview> reviews;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OrderColumn(name = "index")
+    private List<ItemCategory> categories;
 
     public boolean isAccountNonExpired() {
         return true;

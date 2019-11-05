@@ -6,6 +6,7 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -21,6 +22,25 @@ public class Filter {
 
     private Date enabledFrom;
     private Date enabledUntil;
+
+    @OneToMany(mappedBy = "filter")
+    private Set<UserFilter> userFilter;
+
+    @ManyToMany
+    @JoinTable(
+            name = "filters_tags",
+            joinColumns = @JoinColumn(name = "filter_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags;
+
+    @ManyToMany
+    @JoinTable(
+            name = "filters_ingredients",
+            joinColumns = @JoinColumn(name = "filter_id"),
+            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
+    )
+    private Set<Ingredient> ingredients;
 
     public boolean isEnabledNow() {
         Date now = new Date();

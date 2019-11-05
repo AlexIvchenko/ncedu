@@ -17,7 +17,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 public class Ingredient extends RepresentationModel<Ingredient> {
     @Id
-    @Column(name = "id")
     @Type(type = "uuid-char")
     private UUID id;
 

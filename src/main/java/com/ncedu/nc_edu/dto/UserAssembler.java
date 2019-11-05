@@ -5,22 +5,22 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserAssembler extends RepresentationModelAssemblerSupport<User, UserDto> {
+public class UserAssembler extends RepresentationModelAssemblerSupport<User, UserResource> {
     public UserAssembler() {
-        super(User.class, UserDto.class);
+        super(User.class, UserResource.class);
     }
 
     @Override
-    public UserDto toModel(User entity) {
-        UserDto userDto = new UserDto();
-        userDto.setId(entity.getId());
-        userDto.setEmail(entity.getEmail());
-        userDto.setUsername(entity.getUsername());
-        userDto.setGender(entity.getGender().toString());
-        userDto.setBirthday(entity.getBirthday());
-        userDto.setHeight(entity.getHeight());
-        userDto.setWeight(entity.getWeight());
+    public UserResource toModel(User entity) {
+        UserResource userResource = new UserResource();
+        userResource.setId(entity.getId());
+        userResource.setEmail(entity.getEmail());
+        userResource.setUsername(entity.getUsername());
+        userResource.setGender(entity.getGender().toString());
+        userResource.setBirthday(entity.getBirthday());
+        userResource.setHeight(entity.getHeight());
+        userResource.setWeight(entity.getWeight());
 
-        return userDto;
+        return userResource;
     }
 }
