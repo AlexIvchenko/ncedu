@@ -1,6 +1,8 @@
 package com.ncedu.nc_edu.models;
 
 import lombok.Data;
+import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.*;
@@ -18,7 +20,7 @@ public class User {
 
     @Id
     @Column(name = "id")
-    @org.hibernate.annotations.Type(type = "uuid-char")
+    @Type(type = "uuid-char")
     private UUID id;
 
     @Column(name = "email")
@@ -61,21 +63,5 @@ public class User {
 
     public boolean isCredentialsNonExpired() {
         return true;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", email='" + email + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", birthday=" + birthday +
-                ", gender=" + gender +
-                ", height=" + height +
-                ", weight=" + weight +
-                ", enabled=" + enabled +
-                ", roles=" + roles +
-                '}';
     }
 }

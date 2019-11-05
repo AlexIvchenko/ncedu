@@ -1,7 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.UserDto;
-import com.ncedu.nc_edu.exceptions.NoAccessException;
 import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;

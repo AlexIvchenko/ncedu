@@ -2,7 +2,6 @@ package com.ncedu.nc_edu.services;
 
 import com.ncedu.nc_edu.dto.UserDto;
 import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
-import com.ncedu.nc_edu.exceptions.NoAccessException;
 import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
 import com.ncedu.nc_edu.models.User;
 import org.springframework.stereotype.Service;

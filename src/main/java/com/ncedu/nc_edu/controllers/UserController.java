@@ -57,7 +57,6 @@ public class UserController {
     }
 
     @GetMapping(value = "/users")
-    @ResponseBody
     public List<UserDto> showAllUsers() {
         List<User> users = userService.findAllUsers();
         return users.stream()
@@ -88,7 +87,6 @@ public class UserController {
         return userDto;
     }
 
-    // как менять пароль?-+
     @PutMapping(value = "/users/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("#id == authentication.principal.getUser().getId() or hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")

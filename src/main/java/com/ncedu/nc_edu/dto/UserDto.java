@@ -5,9 +5,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.Date;
 import java.util.UUID;
 
