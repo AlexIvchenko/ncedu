@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userDto.getEmail() != null) {
-            if (userRepository.findByEmail(userDto.getEmail()) != null) {
+            if (userRepository.findByEmail(userDto.getEmail()) == null) {
                 oldUser.setEmail(userDto.getEmail());
             } else {
                 throw new EmailAlreadyExistsException();

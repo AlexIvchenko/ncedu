@@ -26,9 +26,24 @@ public class IngredientServiceImpl implements IngredientService {
         return ingredientRepository.findById(id).orElseThrow(IngredientDoesNotExist::new);
     }
 
-    public Ingredient update(Ingredient ingredient) throws IngredientDoesNotExist {
+    public Ingredient updateIngredient(Ingredient ingredient) throws IngredientDoesNotExist {
         Ingredient oldIngredient = ingredientRepository.findById(ingredient.getId())
                         .orElseThrow(IngredientDoesNotExist::new);
+        if (ingredient.getName() != null)
+            oldIngredient.setName(ingredient.getName());
+        return ingredientRepository.save(oldIngredient);
+    }
+
+    public List<Ingredient> findIngredientsByName(String pattern) {
+        return ingredientRepository.findByNameContainsIgnoreCase(pattern);
+    }
+
+    public Ingredient addIngredient(String name) {
+        //unique?
+        //if (ingredientRepository.findByName(name) != null) throw new IngredientAlreadyExist();
+        Ingredient ingredient = new Ingredient();
+        ingredient.setName(name);
+        ingredient.setId(UUID.randomUUID());
         return ingredientRepository.save(ingredient);
     }
 
