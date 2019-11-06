@@ -1,21 +1,19 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.UserAssembler;
-import com.ncedu.nc_edu.dto.UserDto;
+import com.ncedu.nc_edu.dto.UserResource;
 import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
 import com.ncedu.nc_edu.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
-import javax.persistence.Access;
 import javax.validation.Valid;
 import java.text.ParseException;
 import java.util.List;
@@ -34,7 +32,7 @@ public class UserController {
 
     @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto addUser(
+    public UserResource add(
             @RequestParam String email,
             @RequestParam String password
             )
@@ -48,30 +46,29 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists", ex);
         }
 
-        UserDto userDto = userAssembler.toModel(user);
+        UserResource userResource = userAssembler.toModel(user);
 
-        userDto.add(linkTo(methodOn(UserController.class).getUser(userDto.getId())).withSelfRel());
-        userDto.add(linkTo(methodOn(UserController.class).updateUser(userDto.getId(), userDto)).withRel("update"));
+        userResource.add(linkTo(methodOn(UserController.class).getById(userResource.getId())).withSelfRel());
+        userResource.add(linkTo(methodOn(UserController.class).update(userResource.getId(), userResource)).withRel("update"));
 
-        return userDto;
+        return userResource;
     }
 
     @GetMapping(value = "/users")
-    @ResponseBody
-    public List<UserDto> showAllUsers() {
+    public List<UserResource> getAll() {
         List<User> users = userService.findAllUsers();
         return users.stream()
                 .map(userAssembler::toModel)
                 .peek(userDto -> {
-                    userDto.add(linkTo(methodOn(UserController.class).getUser(userDto.getId())).withSelfRel());
+                    userDto.add(linkTo(methodOn(UserController.class).getById(userDto.getId())).withSelfRel());
                     userDto.add(linkTo(methodOn(UserController.class).
-                            updateUser(userDto.getId(), userDto)).withRel("update"));
+                            update(userDto.getId(), userDto)).withRel("update"));
                 })
                 .collect(Collectors.toList());
     }
 
     @GetMapping(value = "/users/{id}")
-    public UserDto getUser(@PathVariable UUID id) {
+    public UserResource getById(@PathVariable UUID id) {
         User user;
 
         try {
@@ -80,29 +77,28 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found");
         }
 
-        UserDto userDto = userAssembler.toModel(user);
+        UserResource userResource = userAssembler.toModel(user);
 
-        userDto.add(linkTo(methodOn(UserController.class).getUser(userDto.getId())).withSelfRel());
-        userDto.add(linkTo(methodOn(UserController.class).updateUser(userDto.getId(), userDto)).withRel("update"));
+        userResource.add(linkTo(methodOn(UserController.class).getById(userResource.getId())).withSelfRel());
+        userResource.add(linkTo(methodOn(UserController.class).update(userResource.getId(), userResource)).withRel("update"));
 
-        return userDto;
+        return userResource;
     }
 
-    // как менять пароль?-+
     @PutMapping(value = "/users/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("#id == authentication.principal.getUser().getId() or hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
-    public UserDto updateUser(
+    public UserResource update(
             @PathVariable UUID id,
-            @Valid @RequestBody UserDto userDto)
+            @Valid @RequestBody UserResource userResource)
     {
-        userDto.setId(id);
+        userResource.setId(id);
 
         try {
-            UserDto updatedUser = userAssembler.toModel(userService.updateUser(userDto));
+            UserResource updatedUser = userAssembler.toModel(userService.updateUser(userResource));
 
-            updatedUser.add(linkTo(methodOn(UserController.class).getUser(updatedUser.getId())).withSelfRel());
-            updatedUser.add(linkTo(methodOn(UserController.class).updateUser(updatedUser.getId(), updatedUser)).withRel("update"));
+            updatedUser.add(linkTo(methodOn(UserController.class).getById(updatedUser.getId())).withSelfRel());
+            updatedUser.add(linkTo(methodOn(UserController.class).update(updatedUser.getId(), updatedUser)).withRel("update"));
 
             return updatedUser;
         } catch (ParseException ex) {

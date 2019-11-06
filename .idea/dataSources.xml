@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="@hel.krvd.ru" uuid="c2dbca9b-91e7-44ec-8112-6db97d735aba">
+    <data-source source="LOCAL" name="hel.krvd.ru" uuid="c2dbca9b-91e7-44ec-8112-6db97d735aba">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://hel.krvd.ru:5432/</jdbc-url>
+      <jdbc-url>jdbc:postgresql://hel.krvd.ru:5432/ncedu</jdbc-url>
     </data-source>
   </component>
 </project>

@@ -15,10 +15,9 @@ import java.util.UUID;
 @Service
 @Transactional
 public class IngredientServiceImpl implements IngredientService {
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    private final IngredientRepository ingredientRepository;
 
-    public IngredientServiceImpl(IngredientRepository ingredientRepository) {
+    public IngredientServiceImpl(@Autowired IngredientRepository ingredientRepository) {
         this.ingredientRepository = ingredientRepository;
     }
 
@@ -26,7 +25,7 @@ public class IngredientServiceImpl implements IngredientService {
         return ingredientRepository.findById(id).orElseThrow(IngredientDoesNotExist::new);
     }
 
-    public Ingredient updateIngredient(Ingredient ingredient) throws IngredientDoesNotExist {
+    public Ingredient update(Ingredient ingredient) throws IngredientDoesNotExist {
         Ingredient oldIngredient = ingredientRepository.findById(ingredient.getId())
                         .orElseThrow(IngredientDoesNotExist::new);
         if (ingredient.getName() != null)
@@ -34,11 +33,11 @@ public class IngredientServiceImpl implements IngredientService {
         return ingredientRepository.save(oldIngredient);
     }
 
-    public List<Ingredient> findIngredientsByName(String pattern) {
+    public List<Ingredient> findByName(String pattern) {
         return ingredientRepository.findByNameContainsIgnoreCase(pattern);
     }
 
-    public Ingredient addIngredient(String name) {
+    public Ingredient add(String name) {
         //unique?
         //if (ingredientRepository.findByName(name) != null) throw new IngredientAlreadyExist();
         Ingredient ingredient = new Ingredient();
