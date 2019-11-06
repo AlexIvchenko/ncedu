@@ -24,7 +24,7 @@ public class Filter {
     private Date enabledUntil;
 
     @OneToMany(mappedBy = "filter")
-    private Set<UserFilter> userFilter;
+    private Set<UsersFiltersDTO> usersFiltersDTOs;
 
     @ManyToMany
     @JoinTable(
