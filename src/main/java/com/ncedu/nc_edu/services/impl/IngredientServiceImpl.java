@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.exceptions.IngredientDoesNotExist;
+import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.Ingredient;
 import com.ncedu.nc_edu.repositories.IngredientRepository;
 import com.ncedu.nc_edu.services.IngredientService;
@@ -21,15 +21,18 @@ public class IngredientServiceImpl implements IngredientService {
         this.ingredientRepository = ingredientRepository;
     }
 
-    public Ingredient findById(UUID id) throws IngredientDoesNotExist {
-        return ingredientRepository.findById(id).orElseThrow(IngredientDoesNotExist::new);
+    public Ingredient findById(UUID id) throws EntityDoesNotExistsException {
+        return ingredientRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Ingredient"));
     }
 
-    public Ingredient update(Ingredient ingredient) throws IngredientDoesNotExist {
+    public Ingredient update(Ingredient ingredient) throws EntityDoesNotExistsException {
         Ingredient oldIngredient = ingredientRepository.findById(ingredient.getId())
-                        .orElseThrow(IngredientDoesNotExist::new);
-        if (ingredient.getName() != null)
+                        .orElseThrow(() -> new EntityDoesNotExistsException("Ingredient"));
+
+        if (ingredient.getName() != null) {
             oldIngredient.setName(ingredient.getName());
+        }
+
         return ingredientRepository.save(oldIngredient);
     }
 

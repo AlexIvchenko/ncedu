@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 public class ReceiptController {
-    private ReceiptService receiptService;
+    private final ReceiptService receiptService;
 
     public ReceiptController(@Autowired ReceiptService receiptService) {
         this.receiptService = receiptService;
