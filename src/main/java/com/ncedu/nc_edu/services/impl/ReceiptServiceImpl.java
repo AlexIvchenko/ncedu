@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class ReceiptServiceImpl implements ReceiptService {
-    private ReceiptRepository receiptRepository;
+    private final ReceiptRepository receiptRepository;
 
     public ReceiptServiceImpl(@Autowired ReceiptRepository receiptRepository) {
         this.receiptRepository = receiptRepository;

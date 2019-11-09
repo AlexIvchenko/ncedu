@@ -1,12 +1,9 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.exceptions.IngredientDoesNotExist;
 import com.ncedu.nc_edu.models.Ingredient;
 import com.ncedu.nc_edu.services.IngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -14,7 +11,7 @@ import java.util.UUID;
 
 @RestController
 public class IngredientController {
-    private IngredientService ingredientService;
+    private final IngredientService ingredientService;
 
     IngredientController(@Autowired IngredientService ingredientService) {
         this.ingredientService = ingredientService;
@@ -29,11 +26,7 @@ public class IngredientController {
 
     @GetMapping(value = "/ingredients/{id}")
     public Ingredient getById(@PathVariable UUID id) {
-        try {
-            return ingredientService.findById(id);
-        } catch (IngredientDoesNotExist e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no such an ingredient");
-        }
+        return ingredientService.findById(id);
     }
 
     @PostMapping(value = "/ingredients")
@@ -43,10 +36,6 @@ public class IngredientController {
 
     @PutMapping(value = "/ingredients/{id}")
     public Ingredient update(@PathVariable UUID id, @RequestBody Ingredient ingredient) {
-        try {
-            return ingredientService.update(ingredient);
-        } catch (IngredientDoesNotExist e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no ingredient with the given id");
-        }
+        return ingredientService.update(ingredient);
     }
 }
