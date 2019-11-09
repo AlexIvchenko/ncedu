@@ -1,12 +1,12 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.UserResource;
+import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
-import com.ncedu.nc_edu.repositories.UserRepository;
-import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole;
-import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
+import com.ncedu.nc_edu.repositories.UserRepository;
+import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -87,16 +87,20 @@ public class UserServiceImpl implements UserService {
             oldUser.setBirthday(userResource.getBirthday());
         }
 
-        if (userResource.getHeight() == 0) {
-            oldUser.setHeight(null);
-        } else {
-            oldUser.setHeight(userResource.getHeight());
+        if (userResource.getHeight() != null) {
+            if (userResource.getHeight() == 0) {
+                oldUser.setHeight(null);
+            } else {
+                oldUser.setHeight(userResource.getHeight());
+            }
         }
 
-        if (userResource.getWeight() == 0) {
-            oldUser.setWeight(null);
-        } else {
-            oldUser.setWeight(userResource.getWeight());
+        if (userResource.getWeight() != null) {
+            if (userResource.getWeight() == 0) {
+                oldUser.setWeight(null);
+            } else {
+                oldUser.setWeight(userResource.getWeight());
+            }
         }
 
         return userRepository.save(oldUser);

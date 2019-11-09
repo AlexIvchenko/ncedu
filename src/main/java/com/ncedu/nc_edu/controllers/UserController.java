@@ -5,14 +5,11 @@ import com.ncedu.nc_edu.dto.UserResource;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
@@ -21,8 +18,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
 @Slf4j
+@Validated
 public class UserController {
     private final UserService userService;
     private final UserAssembler userAssembler;
@@ -35,8 +36,8 @@ public class UserController {
     @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResource add(
-            @RequestParam @Email String email,
-            @RequestParam @NotBlank String password
+            @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
+            @RequestParam @NotBlank(message = "cannot be empty") String password
             )
     {
         User user;
@@ -92,7 +93,6 @@ public class UserController {
         userResource.setId(id);
 
         UserResource updatedUser = userAssembler.toModel(userService.update(userResource));
-        log.debug(updatedUser.toString());
 
         updatedUser.add(linkTo(methodOn(UserController.class).getById(updatedUser.getId())).withSelfRel());
         updatedUser.add(linkTo(methodOn(UserController.class).update(updatedUser.getId(), updatedUser)).withRel("update"));
