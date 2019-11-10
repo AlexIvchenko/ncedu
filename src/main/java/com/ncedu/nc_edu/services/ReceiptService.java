@@ -1,8 +1,13 @@
 package com.ncedu.nc_edu.services;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.ncedu.nc_edu.models.Receipt;
+
+import java.util.List;
+import java.util.UUID;
 
 public interface ReceiptService {
+    List<Receipt> findByName(String name);
+    Receipt findById(UUID id);
+    List<Receipt> findAll();
 
 }

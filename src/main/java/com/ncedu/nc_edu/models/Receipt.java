@@ -4,6 +4,7 @@ import lombok.Data;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,12 +17,15 @@ public class Receipt {
     private UUID id;
 
     private String name;
-    private String description;
     private Integer calories;
     private Float proteins;
     private Float fats;
     private Float carbohydrates;
     private Float rating;
+
+    @OneToMany(mappedBy = "receipt", cascade = CascadeType.ALL)
+    @OrderColumn(name = "index")
+    private List<ReceiptStep> steps;
 
     @OneToMany(mappedBy = "receipt")
     private Set<IngredientsReceiptsDTO> ingredientsReceiptsDTOs;

@@ -18,7 +18,8 @@ public class ReceiptController {
 
     @GetMapping("/receipts")
     public List<Receipt> getAll() {
-        // to do
-        return null;
+        return this.receiptService.findAll();
     }
+
+
 }
