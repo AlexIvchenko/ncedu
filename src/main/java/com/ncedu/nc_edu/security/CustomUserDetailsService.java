@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.security;
 
+import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public CustomUserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(s);
+        User user = userRepository.findByEmail(s).orElseThrow(() -> new EntityDoesNotExistsException("User"));
 
         if (user == null) {
             throw new UsernameNotFoundException("User with given email was not found");

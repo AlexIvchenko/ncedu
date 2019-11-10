@@ -40,10 +40,10 @@ public class User {
     private Gender gender;
 
     @Column(name = "height")
-    private int height;
+    private Integer height;
 
     @Column(name = "weight")
-    private int weight;
+    private Integer weight;
 
     @Column(name = "enabled")
     private boolean enabled;

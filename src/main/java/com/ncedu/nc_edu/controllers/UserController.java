@@ -2,28 +2,31 @@ package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.UserAssembler;
 import com.ncedu.nc_edu.dto.UserResource;
-import com.ncedu.nc_edu.exceptions.UserDoesNotExistsException;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
 import com.ncedu.nc_edu.services.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import javax.validation.Valid;
-import java.text.ParseException;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
+@Slf4j
+@Validated
 public class UserController {
-    private UserService userService;
-    private UserAssembler userAssembler;
+    private final UserService userService;
+    private final UserAssembler userAssembler;
 
     public UserController(@Autowired UserService userService, @Autowired UserAssembler userAssembler) {
         this.userService = userService;
@@ -33,18 +36,12 @@ public class UserController {
     @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResource add(
-            @RequestParam String email,
-            @RequestParam String password
+            @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
+            @RequestParam @NotBlank(message = "cannot be empty") String password
             )
     {
-        // TODO validation
         User user;
-
-        try {
-            user = userService.registerUser(email, password);
-        } catch (EmailAlreadyExistsException ex) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists", ex);
-        }
+        user = userService.registerUser(email, password);
 
         UserResource userResource = userAssembler.toModel(user);
 
@@ -70,12 +67,7 @@ public class UserController {
     @GetMapping(value = "/users/{id}")
     public UserResource getById(@PathVariable UUID id) {
         User user;
-
-        try {
-            user = userService.findUserById(id);
-        } catch (UserDoesNotExistsException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found");
-        }
+        user = userService.findUserById(id);
 
         UserResource userResource = userAssembler.toModel(user);
 
@@ -85,6 +77,12 @@ public class UserController {
         return userResource;
     }
 
+    /*
+     *  height >= 0, if 0 - delete height info
+     *  weight >= 0, if 0 - delete weight info
+     *  birthday < current date
+     *  gender = UNKNOWN|MALE|FEMALE
+     */
     @PutMapping(value = "/users/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("#id == authentication.principal.getUser().getId() or hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
@@ -94,31 +92,11 @@ public class UserController {
     {
         userResource.setId(id);
 
-        try {
-            UserResource updatedUser = userAssembler.toModel(userService.updateUser(userResource));
+        UserResource updatedUser = userAssembler.toModel(userService.update(userResource));
 
-            updatedUser.add(linkTo(methodOn(UserController.class).getById(updatedUser.getId())).withSelfRel());
-            updatedUser.add(linkTo(methodOn(UserController.class).update(updatedUser.getId(), updatedUser)).withRel("update"));
+        updatedUser.add(linkTo(methodOn(UserController.class).getById(updatedUser.getId())).withSelfRel());
+        updatedUser.add(linkTo(methodOn(UserController.class).update(updatedUser.getId(), updatedUser)).withRel("update"));
 
-            return updatedUser;
-        } catch (ParseException ex) {
-            switch (ex.getErrorOffset()) {
-                case 0:
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Gender parsing error");
-                case 1:
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Birthday parsing error");
-                case 2:
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Height parsing error");
-                case 3:
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Weight parsing error");
-            }
-        } catch (EmailAlreadyExistsException ex) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already taken");
-        } catch (UserDoesNotExistsException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no user with the given id");
-        }
-
-        // should never be thrown
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error. Try again later");
+        return updatedUser;
     }
 }
