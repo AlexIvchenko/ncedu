@@ -1,12 +1,13 @@
 package com.ncedu.nc_edu.models;
 
 import lombok.Data;
-import lombok.ToString;
-import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 
 @Entity

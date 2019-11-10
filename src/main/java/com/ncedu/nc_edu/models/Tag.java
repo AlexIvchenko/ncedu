@@ -23,4 +23,7 @@ public class Tag {
             inverseJoinColumns = @JoinColumn(name = "receipt_id")
     )
     private Set<Receipt> receipts;
+
+    @ManyToOne
+    private TagCategory category;
 }

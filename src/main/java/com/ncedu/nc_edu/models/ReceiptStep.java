@@ -1,30 +1,21 @@
 package com.ncedu.nc_edu.models;
 
 import lombok.Data;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "ration_items", schema = "public")
-public class RationItem {
+@Table(name = "receipt_steps", schema = "public")
+public class ReceiptStep {
     @Id
-    @Type(type = "uuid-char")
     private UUID id;
 
-    private Date date;
-
-    @ManyToOne
-    private ItemCategory category;
-
-    @ManyToOne
-    private User owner;
+    private String description;
 
     @ManyToOne
     private Receipt receipt;
