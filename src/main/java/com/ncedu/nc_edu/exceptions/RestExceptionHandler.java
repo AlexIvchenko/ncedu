@@ -69,7 +69,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({
-            EmailAlreadyExistsException.class
+            AlreadyExistsException.class
     })
     public ResponseEntity<String> handleAlreadyExistsException(Exception ex) {
         return new ResponseEntity<>(

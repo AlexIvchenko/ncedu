@@ -90,6 +90,7 @@ public class UserController {
             @PathVariable UUID id,
             @Valid @RequestBody UserResource userResource)
     {
+        log.debug(userResource.toString());
         userResource.setId(id);
 
         UserResource updatedUser = userAssembler.toModel(userService.update(userResource));
