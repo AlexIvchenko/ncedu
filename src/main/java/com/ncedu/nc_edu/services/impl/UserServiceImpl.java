@@ -1,7 +1,7 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.UserResource;
-import com.ncedu.nc_edu.exceptions.EmailAlreadyExistsException;
+import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole;
@@ -33,11 +33,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User registerUser(String email, String password) throws EmailAlreadyExistsException {
+    public User registerUser(String email, String password) throws AlreadyExistsException {
         password = passwordEncoder.encode(password);
 
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new EmailAlreadyExistsException();
+            throw new AlreadyExistsException("User", "email");
         }
 
         User user = new User();
@@ -66,12 +66,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User update(UserResource userResource)
-            throws EntityDoesNotExistsException, EmailAlreadyExistsException
+            throws EntityDoesNotExistsException, AlreadyExistsException
     {
         User oldUser = userRepository.findById(userResource.getId()).orElseThrow(() -> new EntityDoesNotExistsException("User"));
 
         if (userResource.getEmail() != null) {
-            userRepository.findByEmail(userResource.getEmail()).orElseThrow(EmailAlreadyExistsException::new);
+            userRepository.findByEmail(userResource.getEmail()).orElseThrow(() -> new AlreadyExistsException("User", "email"));
             oldUser.setEmail(userResource.getEmail());
         }
 

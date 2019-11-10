@@ -16,11 +16,14 @@ public class Tag {
 
     private String name;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "tags_receipts",
             joinColumns = @JoinColumn(name = "tag_id"),
             inverseJoinColumns = @JoinColumn(name = "receipt_id")
     )
     private Set<Receipt> receipts;
+
+    @ManyToOne
+    private TagCategory category;
 }
