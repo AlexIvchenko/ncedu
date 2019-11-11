@@ -16,7 +16,7 @@ public class Tag {
 
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "tags_receipts",
             joinColumns = @JoinColumn(name = "tag_id"),

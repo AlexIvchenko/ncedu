@@ -19,7 +19,10 @@ public class Filter {
 
     private String name;
 
+    @Column(name = "enabled_from")
     private Date enabledFrom;
+
+    @Column(name = "enabled_until")
     private Date enabledUntil;
 
     @OneToMany(mappedBy = "filter")
