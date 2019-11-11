@@ -20,6 +20,4 @@ public class ReceiptController {
     public List<Receipt> getAll() {
         return this.receiptService.findAll();
     }
-
-
 }
