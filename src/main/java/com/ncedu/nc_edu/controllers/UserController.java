@@ -3,11 +3,13 @@ package com.ncedu.nc_edu.controllers;
 import com.ncedu.nc_edu.dto.UserAssembler;
 import com.ncedu.nc_edu.dto.UserResource;
 import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,6 +77,11 @@ public class UserController {
         userResource.add(linkTo(methodOn(UserController.class).update(userResource.getId(), userResource)).withRel("update"));
 
         return userResource;
+    }
+
+    @GetMapping(value = "/users/me")
+    public UserResource getAuthenticatedUser(Authentication auth) {
+        return userAssembler.toModel(((CustomUserDetails) auth.getPrincipal()).getUser());
     }
 
     /*
