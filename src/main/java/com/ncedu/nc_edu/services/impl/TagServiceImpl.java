@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.TagResource;
+import com.ncedu.nc_edu.dto.resources.TagResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.Tag;

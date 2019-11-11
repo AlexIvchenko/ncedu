@@ -1,4 +1,4 @@
-package com.ncedu.nc_edu.dto;
+package com.ncedu.nc_edu.dto.resources;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,9 +9,9 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class TagResource extends RepresentationModel<TagResource> {
+public class TagCategoryResource extends RepresentationModel<TagCategoryResource> {
     private UUID id;
 
-    @NotBlank(message = "name cannot be empty")
+    @NotBlank
     private String name;
 }

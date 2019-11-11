@@ -5,6 +5,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -55,5 +56,28 @@ public class Filter {
         }
 
         return enabledFrom.compareTo(now) <= 0 && enabledUntil.compareTo(now) > 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Filter filter = (Filter) o;
+        return id.equals(filter.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Filter{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", enabledFrom=" + enabledFrom +
+                ", enabledUntil=" + enabledUntil +
+                '}';
     }
 }

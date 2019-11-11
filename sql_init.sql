@@ -71,15 +71,16 @@ create unique index table_name_id_uindex
 
 create table receipt_steps
 (
-	id varchar(36) not null
-		constraint receipt_steps_pk
-			primary key,
-	description varchar(2048),
-	picture varchar(36),
-	receipt_id varchar(36)
-		constraint receipt_steps_receipts_id_fk
-			references receipts
-				on delete cascade
+    id varchar(36) not null
+        constraint receipt_steps_pk
+            primary key,
+    description varchar(2048),
+    picture varchar(36),
+    receipt_id varchar(36)
+        constraint receipt_steps_receipts_id_fk
+            references receipts
+            on delete cascade,
+    index integer
 );
 
 create table ration_categories

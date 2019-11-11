@@ -1,7 +1,7 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.dto.UserAssembler;
-import com.ncedu.nc_edu.dto.UserResource;
+import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;

@@ -68,6 +68,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    @ExceptionHandler(RequestParseException.class)
+    public ResponseEntity<String> handleRequestParseException(RequestParseException ex) {
+        return new ResponseEntity<>(
+                ex.getMessage(),
+                new HttpHeaders(),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler({
             AlreadyExistsException.class
     })
