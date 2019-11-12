@@ -10,6 +10,7 @@ import com.ncedu.nc_edu.services.ReceiptService;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
@@ -192,7 +193,7 @@ public class ReceiptController {
     }
 
     /**
-     * Tags format: +tag1,-tag2
+     * Tags format: tagId1;-tagId2
      */
     @GetMapping(value = "/receipts/search")
     public CollectionModel<List<ReceiptResource>> search(
@@ -201,9 +202,41 @@ public class ReceiptController {
             @RequestParam(required = false, name = "name") String name,
             Pageable pageable
     ) {
-        List<String> tagList = Arrays.asList(tags.split(","));
+        List<String> tagList = Arrays.asList(tags.split(";"));
+        Set<UUID> includeTags = new HashSet<>();
+        Set<UUID> excludeTags = new HashSet<>();
+        tagList.forEach(s -> {
+            if (s.charAt(0) == '-') {
+                try {
+                    excludeTags.add(UUID.fromString(s.replaceFirst("-", "")));
+                } catch (IllegalArgumentException ex) {
+                    throw new RequestParseException("Invalid tags filter");
+                }
+            } else {
+                try {
+                    includeTags.add(UUID.fromString(s));
+                } catch (IllegalArgumentException ex) {
+                    throw new RequestParseException("Invalid tags filter");
+                }
+            }
+        });
+
+        if (name == null) {
+            name = "";
+        }
+
+        Page<Receipt> page = receiptService.search(pageable, name, includeTags, excludeTags);
 
 
+        CollectionModel<List<ReceiptResource>> resource
+                = new CollectionModel<>(Collections.singleton(
+                        page.getContent().stream().map(receiptAssembler::toModel).collect(Collectors.toList()))
+        );
 
+        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, tags, name, pageable.next())).withRel("next"));
+        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, tags, name, pageable.previousOrFirst())).withRel("prev"));
+        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, tags, name, pageable.first())).withRel("first"));
+
+        return resource;
     }
 }

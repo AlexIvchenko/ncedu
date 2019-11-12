@@ -5,19 +5,19 @@ import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.ReceiptStep;
+import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.repositories.ReceiptRepository;
 import com.ncedu.nc_edu.services.ReceiptService;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -159,5 +159,16 @@ public class ReceiptServiceImpl implements ReceiptService {
         return this.receiptRepository.save(receipt);
     }
 
+    @Override
+    public Page<Receipt> search(
+            Pageable pageable,
+            String name,
+            Set<UUID> includeTags,
+            Set<UUID> excludeTags
+    ) {
+        Set<Tag> tagsToInclude = includeTags.stream().map(tagService::findById).collect(Collectors.toSet());
+        Set<Tag> tagsToExclude = excludeTags.stream().map(tagService::findById).collect(Collectors.toSet());
 
+        return receiptRepository.findAllByNameContainingAndTagsIsInAndTagsIsNotIn(pageable, name, tagsToInclude, tagsToExclude);
+    }
 }
