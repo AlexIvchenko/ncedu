@@ -1,5 +1,6 @@
-package com.ncedu.nc_edu.dto;
+package com.ncedu.nc_edu.dto.assemblers;
 
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.stereotype.Component;

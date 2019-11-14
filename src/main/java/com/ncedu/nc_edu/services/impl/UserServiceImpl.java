@@ -1,26 +1,33 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.UserResource;
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
+import com.ncedu.nc_edu.models.ItemCategory;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.services.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+
+    private final static List<String> defaultCategories = Arrays.asList("breakfast", "lunch", "dinner");
+
 
     public UserServiceImpl(
             @Autowired PasswordEncoder passwordEncoder,
@@ -30,6 +37,23 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+    }
+
+
+    private List<ItemCategory> getDefaultItemCategories() {
+        ItemCategory breakfast = new ItemCategory();
+        breakfast.setId(UUID.randomUUID());
+        breakfast.setName("Breakfast");
+
+        ItemCategory lunch = new ItemCategory();
+        lunch.setId(UUID.randomUUID());
+        lunch.setName("Lunch");
+
+        ItemCategory dinner = new ItemCategory();
+        dinner.setId(UUID.randomUUID());
+        dinner.setName("Dinner");
+
+        return Arrays.asList(breakfast, lunch, dinner);
     }
 
     @Override
@@ -51,6 +75,9 @@ public class UserServiceImpl implements UserService {
         Set<UserRole> roles = new HashSet<>();
         roles.add(role);
         user.setRoles(roles);
+
+        user.setCategories(this.getDefaultItemCategories().stream()
+                .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
 
         return userRepository.save(user);
     }

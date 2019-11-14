@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services;
 
-import com.ncedu.nc_edu.dto.UserResource;
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.User;

@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services;
 
-import com.ncedu.nc_edu.dto.TagResource;
+import com.ncedu.nc_edu.dto.resources.TagResource;
 import com.ncedu.nc_edu.models.Tag;
 
 import java.util.List;
