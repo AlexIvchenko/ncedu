@@ -1,5 +1,6 @@
-package com.ncedu.nc_edu.dto;
+package com.ncedu.nc_edu.dto.resources;
 
+import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
 import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
 import com.ncedu.nc_edu.models.User;
 import lombok.Data;

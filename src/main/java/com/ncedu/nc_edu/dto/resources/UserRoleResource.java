@@ -1,4 +1,4 @@
-package com.ncedu.nc_edu.dto;
+package com.ncedu.nc_edu.dto.resources;
 
 import lombok.Data;
 

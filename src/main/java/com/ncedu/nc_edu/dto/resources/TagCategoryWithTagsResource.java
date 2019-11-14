@@ -1,4 +1,4 @@
-package com.ncedu.nc_edu.dto;
+package com.ncedu.nc_edu.dto.resources;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,9 +10,11 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class TagCategoryResource extends RepresentationModel<TagCategoryResource> {
+public class TagCategoryWithTagsResource extends RepresentationModel<TagCategoryWithTagsResource> {
     private UUID id;
 
     @NotBlank
     private String name;
+
+    private Set<TagResource> tags;
 }

@@ -1,14 +1,11 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.dto.TagAssembler;
-import com.ncedu.nc_edu.dto.TagResource;
-import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.security.CustomUserDetails;
+import com.ncedu.nc_edu.dto.assemblers.TagAssembler;
+import com.ncedu.nc_edu.dto.resources.TagResource;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.RepresentationModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -55,7 +52,7 @@ public class TagController {
         CollectionModel<List<TagResource>> resource = new CollectionModel<>(Collections.singleton(tags));
 
         if (authorities.contains("ROLE_MODERATOR") || authorities.contains("ROLE_ADMIN")) {
-            resource.add(linkTo(methodOn(TagController.class).add(new TagResource())).withRel("update"));
+            resource.add(linkTo(methodOn(TagController.class).add(new TagResource())).withRel("create"));
         }
 
         return resource;
