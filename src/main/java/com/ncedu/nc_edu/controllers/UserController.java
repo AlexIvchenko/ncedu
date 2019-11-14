@@ -79,7 +79,7 @@ public class UserController {
         return userResource;
     }
 
-    @GetMapping(value = "/users/me")
+    @GetMapping(value = "/users/@me")
     public UserResource getAuthenticatedUser(Authentication auth) {
         return userAssembler.toModel(((CustomUserDetails) auth.getPrincipal()).getUser());
     }

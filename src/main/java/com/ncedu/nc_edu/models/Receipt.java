@@ -29,7 +29,7 @@ public class Receipt {
     private List<ReceiptStep> steps;
 
     @OneToMany(mappedBy = "receipt")
-    private Set<IngredientsReceiptsDTO> ingredientsReceiptsDTOs;
+    private Set<IngredientsReceipts> ingredientsReceiptsDTOs;
 
     @ManyToMany
     @JoinTable(
