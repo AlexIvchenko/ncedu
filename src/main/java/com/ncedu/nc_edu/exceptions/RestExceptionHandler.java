@@ -1,9 +1,12 @@
 package com.ncedu.nc_edu.exceptions;
 
+import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -26,8 +30,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 .stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
+
+        JSONObject json = new JSONObject();
+        json.put("error", HttpStatus.BAD_REQUEST.value());
+        json.put("message", String.join(", ", errors));
+
         return new ResponseEntity<>(
-                "Arguments validation error: " + String.join(",", errors),
+                json,
                 headers,
                 HttpStatus.BAD_REQUEST
         );
@@ -50,8 +59,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                     return "'" + last.getName() + "' " + v.getMessage();
                 })
                 .collect(Collectors.toList());
+
+        JSONObject json = new JSONObject();
+        json.put("error", HttpStatus.BAD_REQUEST.value());
+        json.put("message", String.join(", ", errors));
+
         return new ResponseEntity<>(
-                String.join(", ", errors),
+                json,
                 new HttpHeaders(),
                 HttpStatus.BAD_REQUEST
         );
@@ -60,31 +74,56 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             EntityDoesNotExistsException.class
     })
-    public ResponseEntity<String> handleNotFoundException(Exception ex) {
+    public ResponseEntity<Object> handleNotFoundException(Exception ex) {
+        JSONObject json = new JSONObject();
+
+        json.put("error", HttpStatus.NOT_FOUND.value());
+        json.put("message", ex.getMessage());
         return new ResponseEntity<>(
-                ex.getMessage(),
+                json,
                 new HttpHeaders(),
                 HttpStatus.NOT_FOUND
         );
     }
 
     @ExceptionHandler(RequestParseException.class)
-    public ResponseEntity<String> handleRequestParseException(RequestParseException ex) {
+    public ResponseEntity<Object> handleRequestParseException(RequestParseException ex) {
+        JSONObject json = new JSONObject();
+
+        json.put("error", HttpStatus.BAD_REQUEST.value());
+        json.put("message", ex.getMessage());
         return new ResponseEntity<>(
-                ex.getMessage(),
+                json,
                 new HttpHeaders(),
                 HttpStatus.BAD_REQUEST
         );
     }
 
-    @ExceptionHandler({
-            AlreadyExistsException.class
-    })
-    public ResponseEntity<String> handleAlreadyExistsException(Exception ex) {
+    @ExceptionHandler(AlreadyExistsException.class)
+    public ResponseEntity<Object> handleAlreadyExistsException(Exception ex) {
+        JSONObject json = new JSONObject();
+
+        json.put("error", HttpStatus.CONFLICT.value());
+        json.put("message", ex.getMessage());
+
         return new ResponseEntity<>(
-                ex.getMessage(),
+                json,
                 new HttpHeaders(),
                 HttpStatus.CONFLICT
+        );
+    }
+
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        JSONObject json = new JSONObject();
+        Throwable cause = ex.getMostSpecificCause();
+
+        json.put("error", HttpStatus.BAD_REQUEST.value());
+        json.put("message", cause.getMessage());
+
+        return new ResponseEntity<>(
+                json,
+                new HttpHeaders(),
+                HttpStatus.BAD_REQUEST
         );
     }
 }
