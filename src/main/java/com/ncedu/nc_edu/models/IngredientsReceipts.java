@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "ingredients_receipts", schema = "public")
-public class IngredientsReceiptsDTO {
+public class IngredientsReceipts {
     @EmbeddedId
     private IngredientsReceiptsId id;
 

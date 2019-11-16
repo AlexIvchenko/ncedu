@@ -53,7 +53,7 @@ public class User {
     private Set<UserRole> roles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<UsersFiltersDTO> usersFiltersDTOs;
+    private Set<UsersFilters> usersFilters;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<UserReview> reviews;

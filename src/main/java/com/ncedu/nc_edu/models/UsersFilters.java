@@ -6,7 +6,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "users_filters", schema = "public")
-public class UsersFiltersDTO {
+public class UsersFilters {
     @EmbeddedId
     private UsersFiltersId id;
 
@@ -25,7 +25,7 @@ public class UsersFiltersDTO {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UsersFiltersDTO that = (UsersFiltersDTO) o;
+        UsersFilters that = (UsersFilters) o;
         return user.equals(that.user) &&
                 filter.equals(that.filter);
     }

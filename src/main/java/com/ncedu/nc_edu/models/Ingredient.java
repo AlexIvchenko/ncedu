@@ -1,7 +1,6 @@
 package com.ncedu.nc_edu.models;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.springframework.hateoas.RepresentationModel;
 
@@ -15,7 +14,6 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "ingredients", schema = "public")
-@EqualsAndHashCode(callSuper = false)
 public class Ingredient extends RepresentationModel<Ingredient> {
     @Id
     @Type(type = "uuid-char")

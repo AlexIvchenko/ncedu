@@ -7,6 +7,8 @@ import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,7 +40,7 @@ public class UserController {
 
     @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResource add(
+    public RepresentationModel<UserResource> add(
             @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
             @RequestParam @NotBlank(message = "cannot be empty") String password
             )
@@ -54,20 +57,21 @@ public class UserController {
     }
 
     @GetMapping(value = "/users")
-    public List<UserResource> getAll() {
+    public CollectionModel<List<UserResource>> getAll() {
         List<User> users = userService.findAllUsers();
-        return users.stream()
+
+        return new CollectionModel<>(Collections.singleton(users.stream()
                 .map(userAssembler::toModel)
                 .peek(userDto -> {
                     userDto.add(linkTo(methodOn(UserController.class).getById(userDto.getId())).withSelfRel());
                     userDto.add(linkTo(methodOn(UserController.class).
                             update(userDto.getId(), userDto)).withRel("update"));
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())));
     }
 
     @GetMapping(value = "/users/{id}")
-    public UserResource getById(@PathVariable UUID id) {
+    public RepresentationModel<UserResource> getById(@PathVariable UUID id) {
         User user;
         user = userService.findUserById(id);
 
@@ -79,8 +83,8 @@ public class UserController {
         return userResource;
     }
 
-    @GetMapping(value = "/users/me")
-    public UserResource getAuthenticatedUser(Authentication auth) {
+    @GetMapping(value = "/users/@me")
+    public RepresentationModel<UserResource> getAuthenticatedUser(Authentication auth) {
         return userAssembler.toModel(((CustomUserDetails) auth.getPrincipal()).getUser());
     }
 
@@ -93,11 +97,11 @@ public class UserController {
     @PutMapping(value = "/users/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("#id == authentication.principal.getUser().getId() or hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
-    public UserResource update(
+    public RepresentationModel<UserResource> update(
             @PathVariable UUID id,
             @Valid @RequestBody UserResource userResource)
     {
-        log.debug(userResource.toString());
+        log.info(userResource.toString());
         userResource.setId(id);
 
         UserResource updatedUser = userAssembler.toModel(userService.update(userResource));

@@ -130,6 +130,10 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        if (userResource.getPassword() != null) {
+            oldUser.setPassword(passwordEncoder.encode(userResource.getPassword()));
+        }
+
         return userRepository.save(oldUser);
     }
 

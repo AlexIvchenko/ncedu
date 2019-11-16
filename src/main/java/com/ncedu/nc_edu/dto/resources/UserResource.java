@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.dto.resources;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
 import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
 import com.ncedu.nc_edu.models.User;
@@ -34,6 +35,7 @@ public class UserResource extends RepresentationModel<UserResource> {
     private String password;
 
     @Past(message = "Birthday must be in the past")
+    @JsonFormat(pattern = "dd.MM.yyyy")
     private Date birthday;
 
     @PositiveOrZero(message = "Height must be positive or 0 for deletion")
