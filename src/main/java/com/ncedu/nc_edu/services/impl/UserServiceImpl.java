@@ -3,9 +3,7 @@ package com.ncedu.nc_edu.services.impl;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
-import com.ncedu.nc_edu.models.ItemCategory;
-import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserRole;
+import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.services.UserService;
@@ -76,8 +74,8 @@ public class UserServiceImpl implements UserService {
         roles.add(role);
         user.setRoles(roles);
 
-        user.setCategories(this.getDefaultItemCategories().stream()
-                .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
+        //user.setCategories(this.getDefaultItemCategories().stream()
+        //        .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
 
         return userRepository.save(user);
     }
@@ -135,6 +133,12 @@ public class UserServiceImpl implements UserService {
         }
 
         return userRepository.save(oldUser);
+    }
+
+    @Override
+    public List<Filter> getUserFiltersById(UUID id) {
+        return userRepository.findById(id).get().getUsersFilters().stream()
+                .map(UsersFilters::getFilter).collect(Collectors.toList());
     }
 
     @Override
