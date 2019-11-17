@@ -8,7 +8,6 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
@@ -45,12 +44,14 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
 
         CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel());
+        userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
         if (roles.contains(new SimpleGrantedAuthority("ROLE_MODERATOR"))
                 || roles.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
                 || currentUser.getUser().getId().equals(entity.getId())
         ){
-            userResource.add(linkTo(methodOn(controllerClass).update(userResource.getId(), userResource)).withRel("update"));
+            userResource.add(linkTo(methodOn(controllerClass).getUserFilters(userResource.getId())).withRel("filters").withType("GET"));
+            userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
+            userResource.add(linkTo(methodOn(controllerClass).update(userResource.getId(), userResource)).withRel("update").withType("PUT"));
         }
 
         return userResource;

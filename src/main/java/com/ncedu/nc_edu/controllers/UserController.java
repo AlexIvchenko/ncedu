@@ -4,6 +4,7 @@ import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.Filter;
 import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.UserReview;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -75,8 +76,13 @@ public class UserController {
     }
 
     @GetMapping(value = "/users/{id}/filters")
-    public List<Filter> getUsersFilters(@PathVariable UUID id) {
+    public List<Filter> getUserFilters(@PathVariable UUID id) {
         return userService.getUserFiltersById(id);
+    }
+
+    @GetMapping(value = "/users/{id}/reviews")
+    public List<UserReview> getUserReviews(@PathVariable UUID id) {
+        return userService.getReviewsById(id);
     }
 
     /*
