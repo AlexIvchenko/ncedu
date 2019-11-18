@@ -82,9 +82,24 @@ public class ReceiptServiceImpl implements ReceiptService {
             oldReceipt.setCarbohydrates(resource.getCarbohydrates() == 0 ? null : resource.getCarbohydrates());
         }
 
+        if (resource.getCookingMethod() != null) {
+            oldReceipt.setCookingMethod(Receipt.CookingMethod.valueOf(resource.getCookingMethod()));
+        }
+
+        if (resource.getCookingTime() != null) {
+            oldReceipt.setCookingTime(resource.getCookingTime());
+        }
+
+        if (resource.getPrice() != null) {
+            oldReceipt.setPrice(resource.getPrice());
+        }
+
+        if (resource.getCuisine() != null) {
+            oldReceipt.setCuisine(Receipt.Cuisine.valueOf(resource.getCuisine()));
+        }
+
         if (resource.getTags() != null) {
-            oldReceipt.setTags(resource.getTags().stream()
-                    .map(tagResource -> tagService.findById(tagResource.getId())).collect(Collectors.toSet()));
+            // todo
         }
 
         if (resource.getSteps() != null) {
@@ -138,7 +153,7 @@ public class ReceiptServiceImpl implements ReceiptService {
 
         if (resource.getTags() != null) {
             receipt.setTags(resource.getTags().stream()
-                    .map(tagResource -> tagService.findById(tagResource.getId())).collect(Collectors.toSet()));
+                    .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
         if (resource.getSteps() == null) {
@@ -163,11 +178,11 @@ public class ReceiptServiceImpl implements ReceiptService {
     public Page<Receipt> search(
             Pageable pageable,
             String name,
-            Set<UUID> includeTags,
-            Set<UUID> excludeTags
+            Set<String> includeTags,
+            Set<String> excludeTags
     ) {
-        Set<Tag> tagsToInclude = includeTags.stream().map(tagService::findById).collect(Collectors.toSet());
-        Set<Tag> tagsToExclude = excludeTags.stream().map(tagService::findById).collect(Collectors.toSet());
+        Set<Tag> tagsToInclude = includeTags.stream().map(tagService::findByName).collect(Collectors.toSet());
+        Set<Tag> tagsToExclude = excludeTags.stream().map(tagService::findByName).collect(Collectors.toSet());
 
         return receiptRepository.findAllByNameContainingAndTagsIsInAndTagsIsNotIn(pageable, name, tagsToInclude, tagsToExclude);
     }

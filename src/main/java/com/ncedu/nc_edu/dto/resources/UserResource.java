@@ -20,13 +20,13 @@ import java.util.UUID;
 public class UserResource extends RepresentationModel<UserResource> {
     private UUID id;
 
-    @ValueOfEnum(value = User.Gender.class, message = "Must be any of MALE|FEMALE|UNKNOWN")
+    @ValueOfEnum(value = User.Gender.class, message = "Gender must be any of MALE|FEMALE|UNKNOWN")
     private String gender;
 
-    @Size(min = 3, max = 64, message = "Must be more that 3  and less than 64 characters")
+    @Size(min = 3, max = 64, message = "Username must be more that 3  and less than 64 characters")
     private String username;
 
-    @Email(message = "Must be a valid email")
+    @Email(message = "Email must be a valid email")
     private String email;
 
     /**

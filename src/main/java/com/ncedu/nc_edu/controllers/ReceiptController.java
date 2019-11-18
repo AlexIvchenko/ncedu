@@ -2,6 +2,7 @@ package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
+import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
@@ -21,7 +22,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -48,7 +52,8 @@ public class ReceiptController {
     public CollectionModel<List<ReceiptResource>> getAll(
             Authentication auth,
             @RequestParam(name = "own", required = false, defaultValue = "false") Boolean own,
-            @RequestParam(name = "user", required = false) UUID userId
+            @RequestParam(name = "user", required = false) UUID userId,
+            Pageable pageable
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
         Set<String> authorities = auth.getAuthorities().stream()
@@ -192,38 +197,12 @@ public class ReceiptController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    /**
-     * Tags format: tagId1;-tagId2
-     */
     @GetMapping(value = "/receipts/search")
     public CollectionModel<List<ReceiptResource>> search(
             Authentication auth,
-            @RequestParam(required = false, name = "tags") String tags,
-            @RequestParam(required = false, name = "name") String name,
+            @RequestBody @Valid ReceiptSearchCriteria receiptSearchCriteria,
             Pageable pageable
     ) {
-        List<String> tagList = Arrays.asList(tags.split(";"));
-        Set<UUID> includeTags = new HashSet<>();
-        Set<UUID> excludeTags = new HashSet<>();
-        tagList.forEach(s -> {
-            if (s.charAt(0) == '-') {
-                try {
-                    excludeTags.add(UUID.fromString(s.replaceFirst("-", "")));
-                } catch (IllegalArgumentException ex) {
-                    throw new RequestParseException("Invalid tags filter");
-                }
-            } else {
-                try {
-                    includeTags.add(UUID.fromString(s));
-                } catch (IllegalArgumentException ex) {
-                    throw new RequestParseException("Invalid tags filter");
-                }
-            }
-        });
-
-        if (name == null) {
-            name = "";
-        }
 
         Page<Receipt> page = receiptService.search(pageable, name, includeTags, excludeTags);
 

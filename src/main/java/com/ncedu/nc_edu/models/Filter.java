@@ -33,7 +33,7 @@ public class Filter {
     @JoinTable(
             name = "filters_tags",
             joinColumns = @JoinColumn(name = "filter_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
+            inverseJoinColumns = @JoinColumn(name = "tag_name")
     )
     private Set<Tag> tags;
 
