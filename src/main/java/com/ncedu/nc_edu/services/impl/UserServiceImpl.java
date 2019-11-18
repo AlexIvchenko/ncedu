@@ -3,9 +3,7 @@ package com.ncedu.nc_edu.services.impl;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
-import com.ncedu.nc_edu.models.ItemCategory;
-import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserRole;
+import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.services.UserService;
@@ -76,8 +74,8 @@ public class UserServiceImpl implements UserService {
         roles.add(role);
         user.setRoles(roles);
 
-        user.setCategories(this.getDefaultItemCategories().stream()
-                .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
+        //user.setCategories(this.getDefaultItemCategories().stream()
+        //        .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
 
         return userRepository.save(user);
     }
@@ -98,7 +96,8 @@ public class UserServiceImpl implements UserService {
         User oldUser = userRepository.findById(userResource.getId()).orElseThrow(() -> new EntityDoesNotExistsException("User"));
 
         if (userResource.getEmail() != null) {
-            userRepository.findByEmail(userResource.getEmail()).orElseThrow(() -> new AlreadyExistsException("User", "email"));
+            if (userRepository.findByEmail(userResource.getEmail()).isPresent())
+                throw new AlreadyExistsException("User", "email");
             oldUser.setEmail(userResource.getEmail());
         }
 
@@ -135,6 +134,21 @@ public class UserServiceImpl implements UserService {
         }
 
         return userRepository.save(oldUser);
+    }
+
+    @Override
+    public List<Filter> getUserFiltersById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("User with id" + id))
+                .getUsersFilters().stream()
+                .map(UsersFilters::getFilter).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserReview> getReviewsById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("User with id" + id))
+                .getReviews();
     }
 
     @Override
