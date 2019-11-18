@@ -5,6 +5,7 @@ import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,10 +40,16 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
         userResource.setHeight(entity.getHeight());
         userResource.setWeight(entity.getWeight());
 
-        Set<GrantedAuthority> roles = new HashSet<>(
-                (SecurityContextHolder.getContext().getAuthentication().getAuthorities()));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Set<GrantedAuthority> roles = new HashSet<>((authentication.getAuthorities()));
+        CustomUserDetails currentUser;
+
+        if (!roles.contains(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))) {
+            currentUser = (CustomUserDetails) authentication.getPrincipal();
+        } else {
+            currentUser = new CustomUserDetails(entity);
+        }
 
         userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
         if (roles.contains(new SimpleGrantedAuthority("ROLE_MODERATOR"))

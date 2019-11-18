@@ -1,8 +1,10 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
+import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.Filter;
+import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserReview;
 import com.ncedu.nc_edu.security.CustomUserDetails;
@@ -68,6 +70,11 @@ public class UserController {
         user = userService.findUserById(id);
         UserResource userResource = userAssembler.toModel(user);
         return userResource;
+    }
+
+    @GetMapping(value = "/users/{id}/receipts")
+    public CollectionModel<List<ReceiptResource>> getReceiptsById(@PathVariable UUID id) {
+        return null;
     }
 
     @GetMapping(value = "/users/@me")

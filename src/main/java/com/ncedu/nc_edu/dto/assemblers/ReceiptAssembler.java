@@ -48,11 +48,11 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
         resource.setCarbohydrates(entity.getCarbohydrates());
         resource.setProteins(entity.getProteins());
         resource.setRating(entity.getRating());
-        //resource.setOwner(entity.getOwner().getId());
+        resource.setOwner(entity.getOwner().getId());
 
-        //resource.setTags(entity.getTags().stream().map(tagAssembler::toModel).collect(Collectors.toSet()));
+        resource.setTags(entity.getTags().stream().map(tagAssembler::toModel).collect(Collectors.toSet()));
 
-        //resource.setSteps(entity.getSteps().stream().map(stepAssembler::toModel).collect(Collectors.toList()));
+        resource.setSteps(entity.getSteps().stream().map(stepAssembler::toModel).collect(Collectors.toList()));
 
         resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));
