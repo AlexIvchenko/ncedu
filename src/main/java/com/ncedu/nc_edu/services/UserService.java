@@ -3,7 +3,10 @@ package com.ncedu.nc_edu.services;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
+import com.ncedu.nc_edu.models.Filter;
 import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.UserFilter;
+import com.ncedu.nc_edu.models.UserReview;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +14,10 @@ import java.util.UUID;
 public interface UserService {
     User registerUser(String email, String password) throws AlreadyExistsException;
     List<User> findAllUsers();
+
+    List<Filter> getUserFiltersById(UUID id);
+
+    List<UserReview> getReviewsById(UUID id);
 
     /**
      *

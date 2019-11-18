@@ -1,8 +1,12 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
+import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
+import com.ncedu.nc_edu.models.Filter;
+import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.UserReview;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,12 +51,7 @@ public class UserController {
     {
         User user;
         user = userService.registerUser(email, password);
-
         UserResource userResource = userAssembler.toModel(user);
-
-        userResource.add(linkTo(methodOn(UserController.class).getById(userResource.getId())).withSelfRel());
-        userResource.add(linkTo(methodOn(UserController.class).update(userResource.getId(), userResource)).withRel("update"));
-
         return userResource;
     }
 
@@ -62,11 +61,6 @@ public class UserController {
 
         return new CollectionModel<>(Collections.singleton(users.stream()
                 .map(userAssembler::toModel)
-                .peek(userDto -> {
-                    userDto.add(linkTo(methodOn(UserController.class).getById(userDto.getId())).withSelfRel());
-                    userDto.add(linkTo(methodOn(UserController.class).
-                            update(userDto.getId(), userDto)).withRel("update"));
-                })
                 .collect(Collectors.toList())));
     }
 
@@ -74,18 +68,28 @@ public class UserController {
     public RepresentationModel<UserResource> getById(@PathVariable UUID id) {
         User user;
         user = userService.findUserById(id);
-
         UserResource userResource = userAssembler.toModel(user);
-
-        userResource.add(linkTo(methodOn(UserController.class).getById(userResource.getId())).withSelfRel());
-        userResource.add(linkTo(methodOn(UserController.class).update(userResource.getId(), userResource)).withRel("update"));
-
         return userResource;
+    }
+
+    @GetMapping(value = "/users/{id}/receipts")
+    public CollectionModel<List<ReceiptResource>> getReceiptsById(@PathVariable UUID id) {
+        return null;
     }
 
     @GetMapping(value = "/users/@me")
     public RepresentationModel<UserResource> getAuthenticatedUser(Authentication auth) {
         return userAssembler.toModel(((CustomUserDetails) auth.getPrincipal()).getUser());
+    }
+
+    @GetMapping(value = "/users/{id}/filters")
+    public List<Filter> getUserFilters(@PathVariable UUID id) {
+        return userService.getUserFiltersById(id);
+    }
+
+    @GetMapping(value = "/users/{id}/reviews")
+    public List<UserReview> getUserReviews(@PathVariable UUID id) {
+        return userService.getReviewsById(id);
     }
 
     /*
@@ -103,12 +107,7 @@ public class UserController {
     {
         log.info(userResource.toString());
         userResource.setId(id);
-
         UserResource updatedUser = userAssembler.toModel(userService.update(userResource));
-
-        updatedUser.add(linkTo(methodOn(UserController.class).getById(updatedUser.getId())).withSelfRel());
-        updatedUser.add(linkTo(methodOn(UserController.class).update(updatedUser.getId(), updatedUser)).withRel("update"));
-
         return updatedUser;
     }
 }
