@@ -1,6 +1,7 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
+import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Receipt;
@@ -35,8 +36,8 @@ public class ReceiptServiceImpl implements ReceiptService {
         this.tagService = tagService;
     }
 
-    public List<Receipt> findAll() {
-        return this.receiptRepository.findAll();
+    public Page<Receipt> findAll(Pageable pageable) {
+        return this.receiptRepository.findAll(pageable);
     }
 
     public Receipt findById(UUID id) {
@@ -169,21 +170,42 @@ public class ReceiptServiceImpl implements ReceiptService {
             return step;
         }).collect(Collectors.toList()));
 
-        log.info(receipt.toString());
+        log.debug(receipt.toString());
 
         return this.receiptRepository.save(receipt);
     }
 
     @Override
     public Page<Receipt> search(
-            Pageable pageable,
-            String name,
-            Set<String> includeTags,
-            Set<String> excludeTags
+            ReceiptSearchCriteria receiptSearchCriteria,
+            Pageable pageable
     ) {
-        Set<Tag> tagsToInclude = includeTags.stream().map(tagService::findByName).collect(Collectors.toSet());
-        Set<Tag> tagsToExclude = excludeTags.stream().map(tagService::findByName).collect(Collectors.toSet());
+        Set<Tag> includeTags = new HashSet<>();
+        Set<Tag> excludeTags = new HashSet<>();
 
-        return receiptRepository.findAllByNameContainingAndTagsIsInAndTagsIsNotIn(pageable, name, tagsToInclude, tagsToExclude);
+        if (receiptSearchCriteria.getIncludeTags() != null) {
+            includeTags.addAll(receiptSearchCriteria.getIncludeTags().stream().map(s -> {
+                if (tagService.existsByName(s)) {
+                    return tagService.findByName(s);
+                } else {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList()));
+        }
+
+        if (receiptSearchCriteria.getExcludeTags() != null) {
+            excludeTags.addAll(receiptSearchCriteria.getExcludeTags().stream().map(s -> {
+                if (tagService.existsByName(s)) {
+                    return tagService.findByName(s);
+                } else {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList()));
+        }
+
+        return this.receiptRepository.findAll(
+                new ReceiptSearchSpecification(receiptSearchCriteria, includeTags, excludeTags),
+                pageable
+        );
     }
 }

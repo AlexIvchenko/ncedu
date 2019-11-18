@@ -13,10 +13,10 @@ import java.util.UUID;
 public interface ReceiptService {
     List<Receipt> findByName(String name);
     Receipt findById(UUID id);
-    List<Receipt> findAll();
+    Page<Receipt> findAll(Pageable pageable);
     List<Receipt> findAllOwn(User user);
     void removeById(UUID id);
     Receipt update(ReceiptResource resource);
     Receipt create(ReceiptResource resource, User owner);
-    Page<Receipt> search(Pageable pageable, ReceiptSearchCriteria receiptSearchCriteria);
+    Page<Receipt> search(ReceiptSearchCriteria receiptSearchCriteria, Pageable pageable);
 }

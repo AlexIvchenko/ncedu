@@ -32,6 +32,11 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    public boolean existsByName(String name) {
+        return tagRepository.existsById(name);
+    }
+
+    @Override
     public Tag add(TagResource newTag) {
         Optional<Tag> tagOptional = tagRepository.findById(newTag.getName());
 

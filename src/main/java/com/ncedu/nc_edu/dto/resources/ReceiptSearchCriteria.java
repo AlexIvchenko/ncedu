@@ -16,19 +16,19 @@ public class ReceiptSearchCriteria {
     private Integer caloriesMax;
 
     @PositiveOrZero(message = "Fats min must be greater than or equal to zero")
-    private Integer fatsMin;
+    private Float fatsMin;
     @PositiveOrZero(message = "Fats max must be greater than or equal to zero")
-    private Integer fatsMax;
+    private Float fatsMax;
 
     @PositiveOrZero(message = "Carbohydrates min must be greater than or equal to zero")
-    private Integer carbohydratesMin;
+    private Float carbohydratesMin;
     @PositiveOrZero(message = "Carbohydrates max must be greater than or equal to zero")
-    private Integer carbohydratesMax;
+    private Float carbohydratesMax;
 
     @PositiveOrZero(message = "Proteins min must be greater than or equal to zero")
-    private Integer proteinsMin;
+    private Float proteinsMin;
     @PositiveOrZero(message = "Proteins max must be greater than or equal to zero")
-    private Integer proteinsMax;
+    private Float proteinsMax;
 
     @PositiveOrZero(message = "Rating min must be greater than or equal to zero")
     private Float ratingMin;
@@ -39,9 +39,10 @@ public class ReceiptSearchCriteria {
     @Size(min = 1, max = 128, message = "Name size must be 1..128")
     private String name;
 
-    @ValueOfEnum(value = Receipt.CookingMethod.class, message = "Cooking method must be any of " +
-            "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE")
-    private String cookingMethods;
+    private Set<
+            @ValueOfEnum(value = Receipt.CookingMethod.class, message = "Cooking method must be any of " +
+            "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE") String
+            > cookingMethods;
 
     @PositiveOrZero(message = "Cooking time min must be greater than or equal to zero")
     private Integer cookingTimeMin;

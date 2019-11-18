@@ -23,10 +23,13 @@ public class Receipt {
     private Float fats;
     private Float carbohydrates;
     private Float rating;
-    private Integer cookingTime;
     private Integer price;
 
+    @Column(name = "cooking_time")
+    private Integer cookingTime;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "cooking_method")
     private CookingMethod cookingMethod;
 
     @Enumerated(EnumType.STRING)

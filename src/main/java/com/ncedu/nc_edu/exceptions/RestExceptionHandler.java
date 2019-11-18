@@ -71,9 +71,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
-    @ExceptionHandler({
-            EntityDoesNotExistsException.class
-    })
+    @ExceptionHandler({EntityDoesNotExistsException.class})
     public ResponseEntity<Object> handleNotFoundException(Exception ex) {
         JSONObject json = new JSONObject();
 

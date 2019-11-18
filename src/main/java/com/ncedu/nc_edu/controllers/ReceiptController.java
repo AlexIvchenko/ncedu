@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -49,56 +50,20 @@ public class ReceiptController {
     }
 
     @GetMapping("/receipts")
-    public CollectionModel<List<ReceiptResource>> getAll(
+    public PagedModel getAll(
             Authentication auth,
-            @RequestParam(name = "own", required = false, defaultValue = "false") Boolean own,
-            @RequestParam(name = "user", required = false) UUID userId,
             Pageable pageable
     ) {
-        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        Page<Receipt> page = this.receiptService.findAll(pageable);
 
-        List<Receipt> receiptEntities;
-        List<ReceiptResource> receipts;
+        PagedModel paged = PagedModel.wrap(page.getContent().stream().map(receiptAssembler::toModel)
+                .collect(Collectors.toList()), new PagedModel.PageMetadata(
+                page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
+        ));
 
-        if (own) {
-            receiptEntities = this.receiptService.findAllOwn(user);
-        } else if (userId != null) {
-            receiptEntities = this.receiptService.findAllOwn(userService.findUserById(userId));
-        } else {
-            receiptEntities = this.receiptService.findAll();
-        }
+        paged.add(linkTo(methodOn(ReceiptController.class).create(auth, null)).withRel("create"));
 
-        receipts = receiptEntities.stream()
-                .map(receiptAssembler::toModel).collect(Collectors.toList());
-
-        receipts.forEach(receiptResource -> {
-            receiptResource.getTags().forEach(tagResource -> {
-                tagResource.add(linkTo(methodOn(TagController.class).getById(tagResource.getId())).withSelfRel());
-
-                if (authorities.contains("ROLE_MODERATOR") || authorities.contains("ROLE_ADMIN")) {
-                    tagResource.add(linkTo(methodOn(TagController.class)
-                            .update(tagResource.getId(), tagResource)).withRel("update"));
-                }
-            });
-
-            if (authorities.contains("ROLE_MODERATOR")
-                    || authorities.contains("ROLE_ADMIN")
-                    || user.getId().equals(receiptResource.getOwner())
-            ) {
-                receiptResource.add(linkTo(
-                        methodOn(ReceiptController.class).remove(auth, receiptResource.getId())).withRel("remove"));
-
-                receiptResource.add(linkTo(methodOn(ReceiptController.class)
-                        .update(auth, receiptResource.getId(), null)).withRel("update"));
-            }
-        });
-
-        CollectionModel<List<ReceiptResource>> resource = new CollectionModel<>(Collections.singleton(receipts));
-        resource.add(linkTo(methodOn(ReceiptController.class).create(auth, null)).withRel("create"));
-
-        return resource;
+        return paged;
     }
 
     @GetMapping(value = "/receipts/{id}")
@@ -130,11 +95,11 @@ public class ReceiptController {
             }
         });
 
-        log.info(receiptResource.toString());
+        log.debug(receiptResource.toString());
 
         ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receiptResource, user));
 
-        log.info(resource.toString());
+        log.debug(resource.toString());
 
         resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, resource.getId())).withSelfRel());
         resource.add(linkTo(methodOn(ReceiptController.class).update(auth, resource.getId(), null)).withRel("update"));
@@ -158,7 +123,7 @@ public class ReceiptController {
                 || authorities.contains("ROLE_ADMIN")
                 || user.getId().equals(receiptService.findById(id).getOwner().getId()))
         ) {
-            throw new AccessDeniedException("You do not have access to update the receipt");
+            throw new AccessDeniedException("You do not have access to update this receipt");
         }
 
         receiptResource.getSteps().forEach(step -> {
@@ -189,7 +154,7 @@ public class ReceiptController {
                 || authorities.contains("ROLE_ADMIN")
                 || user.getId().equals(receiptService.findById(id).getOwner().getId()))
         ) {
-            throw new AccessDeniedException("You do not have access to remove the receipt");
+            throw new AccessDeniedException("You do not have access to remove this receipt");
         }
 
         this.receiptService.removeById(id);
@@ -198,13 +163,21 @@ public class ReceiptController {
     }
 
     @GetMapping(value = "/receipts/search")
-    public CollectionModel<List<ReceiptResource>> search(
+    public PagedModel search(
             Authentication auth,
-            @RequestBody @Valid ReceiptSearchCriteria receiptSearchCriteria,
+            @RequestBody(required = false) @Valid ReceiptSearchCriteria receiptSearchCriteria,
             Pageable pageable
     ) {
+        if (receiptSearchCriteria == null) {
+            return this.getAll(auth, pageable);
+        }
 
-        Page<Receipt> page = receiptService.search(pageable, name, includeTags, excludeTags);
+        Page<Receipt> page = receiptService.search(receiptSearchCriteria, pageable);
+
+        PagedModel paged = PagedModel.wrap(page.getContent().stream().map(receiptAssembler::toModel)
+                        .collect(Collectors.toList()), new PagedModel.PageMetadata(
+                                page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
+        ));
 
 
         CollectionModel<List<ReceiptResource>> resource
@@ -212,10 +185,10 @@ public class ReceiptController {
                         page.getContent().stream().map(receiptAssembler::toModel).collect(Collectors.toList()))
         );
 
-        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, tags, name, pageable.next())).withRel("next"));
-        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, tags, name, pageable.previousOrFirst())).withRel("prev"));
-        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, tags, name, pageable.first())).withRel("first"));
+        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.next())).withRel("next"));
+        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.previousOrFirst())).withRel("prev"));
+        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.first())).withRel("first"));
 
-        return resource;
+        return paged;
     }
 }

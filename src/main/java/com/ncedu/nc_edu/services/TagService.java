@@ -9,6 +9,6 @@ public interface TagService {
     List<Tag> findAll();
 
     Tag findByName(String name);
-
+    boolean existsByName(String name);
     Tag add(TagResource newTag);
 }

@@ -33,9 +33,10 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
         resource.setCookingTime(entity.getCookingTime());
         resource.setPrice(entity.getPrice());
         resource.setCookingMethod(entity.getCookingMethod().toString());
+        resource.setCuisine(entity.getCuisine().toString());
 
         resource.setTags(entity.getTags().stream()
-                .map(Tag::toString).collect(Collectors.toSet())
+                .map(Tag::getName).collect(Collectors.toSet())
         );
 
         resource.setSteps(entity.getSteps().stream()
