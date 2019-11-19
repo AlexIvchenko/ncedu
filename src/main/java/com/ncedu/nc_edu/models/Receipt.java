@@ -23,6 +23,17 @@ public class Receipt {
     private Float fats;
     private Float carbohydrates;
     private Float rating;
+    private Integer price;
+
+    @Column(name = "cooking_time")
+    private Integer cookingTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cooking_method")
+    private CookingMethod cookingMethod;
+
+    @Enumerated(EnumType.STRING)
+    private Cuisine cuisine;
 
     @OneToMany(mappedBy = "receipt", cascade = CascadeType.ALL)
     @OrderColumn(name = "index")
@@ -31,11 +42,12 @@ public class Receipt {
     @OneToMany(mappedBy = "receipt")
     private Set<IngredientsReceipts> ingredientsReceiptsDTOs;
 
+
     @ManyToMany
     @JoinTable(
             name = "tags_receipts",
             joinColumns = @JoinColumn(name = "receipt_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
+            inverseJoinColumns = @JoinColumn(name = "tag_name")
     )
     private Set<Tag> tags;
 
@@ -66,5 +78,22 @@ public class Receipt {
                 ", carbohydrates=" + carbohydrates +
                 ", rating=" + rating +
                 '}';
+    }
+
+    public enum CookingMethod {
+        OVEN,
+        BLENDER,
+        GRILL,
+        WOK,
+        MICROWAVE,
+        FREEZER,
+        STEAMER,
+        STOVE;
+    }
+
+    public enum Cuisine {
+        RUSSIAN,
+        ITALIAN,
+        JAPANESE
     }
 }

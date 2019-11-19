@@ -1,10 +1,13 @@
 package com.ncedu.nc_edu.models;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
 @Entity
+@Data
 @Table(name = "users_filters", schema = "public")
 public class UsersFilters {
     @EmbeddedId

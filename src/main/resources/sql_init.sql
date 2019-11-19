@@ -63,10 +63,14 @@ create table if not exists receipts
     owner_id varchar(36)
         constraint receipts_users_id_fk
             references users
-            on delete set null
+            on delete set null,
+    cooking_method varchar(64),
+    cooking_time integer,
+    price integer,
+    cuisine varchar(64)
 );
 
-create unique index if not exists table_name_id_uindex
+create unique index if not exists receipts_id_uindex
     on receipts (id);
 
 create table if not exists receipt_steps
@@ -115,36 +119,20 @@ create table if not exists ration_items
             on delete cascade
 );
 
-create table if not exists tag_categories
-(
-    id varchar(36) not null
-        constraint tag_categories_pk
-            primary key,
-    name varchar(255)
-);
-
 create table if not exists tags
 (
-    id varchar(36) not null
+    name varchar(255) not null
         constraint tags_pk
-            primary key,
-    name varchar(255) not null,
-    category_id varchar(36)
-        constraint tags_tag_categories_id_fk
-            references tag_categories
-            on delete cascade
+            primary key
 );
 
 create unique index if not exists tags_name_uindex
     on tags (name);
 
-create unique index if not exists tag_categories_name_uindex
-    on tag_categories (name);
-
 create table if not exists tags_receipts
 (
-    tag_id varchar(36)
-        constraint tags_receipts_tags_id_fk
+    tag_name varchar(36)
+        constraint tags_receipts_tags_name_fk
             references tags
             on delete cascade,
     receipt_id varchar(36)
@@ -199,8 +187,8 @@ create table if not exists filters_tags
         constraint filters_tags_user_filters_id_fk
             references user_filters
             on delete cascade,
-    tag_id varchar(36)
-        constraint filters_tags_tags_id_fk
+    tag_name varchar(36)
+        constraint filters_tags_tags_name_fk
             references tags
             on delete cascade
 );

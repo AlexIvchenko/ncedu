@@ -6,8 +6,8 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 import org.springframework.stereotype.Component;
 
 @Component
-public class StepAssembler extends RepresentationModelAssemblerSupport<ReceiptStep, ReceiptStepResource> {
-    public StepAssembler() {
+public class ReceiptStepAssembler extends RepresentationModelAssemblerSupport<ReceiptStep, ReceiptStepResource> {
+    public ReceiptStepAssembler() {
         super(ReceiptStep.class, ReceiptStepResource.class);
     }
 
