@@ -2,18 +2,22 @@ package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.TagAssembler;
 import com.ncedu.nc_edu.dto.resources.TagResource;
+import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,6 +36,7 @@ public class TagController {
         Set<String> authorities = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
 
+
         List<TagResource> tags = this.tagService.findAll().stream()
                 .map(tag -> {
                     TagResource t = tagAssembler.toModel(tag);
@@ -46,5 +51,10 @@ public class TagController {
         CollectionModel<List<TagResource>> resource = new CollectionModel<>(Collections.singleton(tags));
 
         return resource;
+    }
+
+    @GetMapping("/tags/{id}/receipts")
+    public PagedModel<Receipt> getAllByTag(@PathVariable UUID id, Authentication auth) {
+        return null;
     }
 }

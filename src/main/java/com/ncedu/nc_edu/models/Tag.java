@@ -16,7 +16,7 @@ public class Tag {
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "tags_receipts",
-            joinColumns = @JoinColumn(name = "tag_id"),
+            joinColumns = @JoinColumn(name = "tag_name"),
             inverseJoinColumns = @JoinColumn(name = "receipt_id")
     )
     private Set<Receipt> receipts;

@@ -6,10 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.hateoas.RepresentationModel;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -49,10 +46,12 @@ public class ReceiptResource extends RepresentationModel<ReceiptResource> {
     @Size(max = 10000)
     private Integer price;
 
+    @NotNull
     @ValueOfEnum(value = Receipt.CookingMethod.class, message = "Cooking method must be any of " +
             "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE")
     private String cookingMethod;
 
+    @NotNull
     @ValueOfEnum(value = Receipt.Cuisine.class, message = "Cuisine must be any of " +
             "RUSSIAN|ITALIAN|JAPANESE")
     private String cuisine;

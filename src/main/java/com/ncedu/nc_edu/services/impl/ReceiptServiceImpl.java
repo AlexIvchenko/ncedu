@@ -30,8 +30,7 @@ public class ReceiptServiceImpl implements ReceiptService {
 
     public ReceiptServiceImpl(
             @Autowired ReceiptRepository receiptRepository,
-            @Autowired TagService tagService
-    ) {
+            @Autowired TagService tagService) {
         this.receiptRepository = receiptRepository;
         this.tagService = tagService;
     }
@@ -100,7 +99,8 @@ public class ReceiptServiceImpl implements ReceiptService {
         }
 
         if (resource.getTags() != null) {
-            // todo
+            oldReceipt.setTags(resource.getTags().stream()
+                    .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
         if (resource.getSteps() != null) {
@@ -144,6 +144,7 @@ public class ReceiptServiceImpl implements ReceiptService {
         Receipt receipt = new Receipt();
 
         receipt.setId(UUID.randomUUID());
+
         receipt.setName(resource.getName());
         receipt.setCarbohydrates(resource.getCarbohydrates());
         receipt.setProteins(resource.getProteins());
@@ -151,6 +152,10 @@ public class ReceiptServiceImpl implements ReceiptService {
         receipt.setFats(resource.getFats());
         receipt.setRating(0f);
         receipt.setOwner(owner);
+        receipt.setCuisine(Receipt.Cuisine.valueOf(resource.getCuisine()));
+        receipt.setCookingMethod(Receipt.CookingMethod.valueOf(resource.getCookingMethod()));
+        receipt.setCookingTime(resource.getCookingTime());
+        receipt.setPrice(resource.getPrice());
 
         if (resource.getTags() != null) {
             receipt.setTags(resource.getTags().stream()

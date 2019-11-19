@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -122,6 +123,20 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 json,
                 new HttpHeaders(),
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
+        JSONObject json = new JSONObject();
+
+        json.put("error", HttpStatus.FORBIDDEN.value());
+        json.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(
+                json,
+                new HttpHeaders(),
+                HttpStatus.FORBIDDEN
         );
     }
 }

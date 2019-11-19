@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Filter> getUserFiltersById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new EntityDoesNotExistsException("User with id" + id))
+                .orElseThrow(() -> new EntityDoesNotExistsException("User with id " + id))
                 .getUsersFilters().stream()
                 .map(UsersFilters::getFilter).collect(Collectors.toList());
     }
@@ -147,7 +147,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserReview> getReviewsById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new EntityDoesNotExistsException("User with id" + id))
+                .orElseThrow(() -> new EntityDoesNotExistsException("User with id " + id))
                 .getReviews();
     }
 
@@ -155,4 +155,6 @@ public class UserServiceImpl implements UserService {
     public User findUserById(UUID id) throws EntityDoesNotExistsException {
         return userRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("User"));
     }
+
+
 }

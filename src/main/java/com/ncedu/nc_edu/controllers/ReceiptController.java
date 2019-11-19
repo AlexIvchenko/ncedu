@@ -1,14 +1,15 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
+import com.ncedu.nc_edu.dto.assemblers.ReceiptStepAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
+import com.ncedu.nc_edu.dto.resources.ReceiptStepResource;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.ReceiptService;
-import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,16 +38,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class ReceiptController {
     private final ReceiptService receiptService;
     private final ReceiptAssembler receiptAssembler;
-    private final UserService userService;
+    private final ReceiptStepAssembler receiptStepAssembler;
 
     public ReceiptController(
             @Autowired ReceiptService receiptService,
             @Autowired ReceiptAssembler receiptAssembler,
-            @Autowired UserService userService
+            @Autowired ReceiptStepAssembler receiptStepAssembler
     ) {
         this.receiptService = receiptService;
         this.receiptAssembler = receiptAssembler;
-        this.userService = userService;
+        this.receiptStepAssembler = receiptStepAssembler;
     }
 
     @GetMapping("/receipts")
@@ -68,17 +69,18 @@ public class ReceiptController {
 
     @GetMapping(value = "/receipts/{id}")
     public ReceiptResource getById(Authentication auth, @PathVariable UUID id) {
-        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-
         ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.findById(id));
-        resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, id)).withSelfRel());
+        return resource;
+    }
 
-        if (resource.getOwner().equals(user.getId())) {
-            resource.add(linkTo(methodOn(ReceiptController.class).update(auth, id, null)).withRel("update"));
-            resource.add(linkTo(methodOn(ReceiptController.class).remove(auth, id)).withRel("remove"));
-        }
+    @GetMapping(value = "/receipts/{id}/steps")
+    public CollectionModel<List<ReceiptStepResource>> getReceiptSteps(@PathVariable UUID id) {
+        CollectionModel<List<ReceiptStepResource>> resource = new CollectionModel<>(Collections.singleton(
+                this.receiptService.findById(id).getSteps().stream()
+                        .map(receiptStepAssembler::toModel).collect(Collectors.toList())
+        ));
 
-        resource.add(linkTo(methodOn(ReceiptController.class).create(auth, null)).withRel("create"));
+        resource.add(linkTo(methodOn(ReceiptController.class).getById(null, id)).withRel("receipt"));
 
         return resource;
     }
@@ -100,11 +102,6 @@ public class ReceiptController {
         ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receiptResource, user));
 
         log.debug(resource.toString());
-
-        resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, resource.getId())).withSelfRel());
-        resource.add(linkTo(methodOn(ReceiptController.class).update(auth, resource.getId(), null)).withRel("update"));
-        resource.add(linkTo(methodOn(ReceiptController.class).remove(auth, resource.getId())).withRel("remove"));
-        resource.add(linkTo(methodOn(ReceiptController.class).create(auth, null)).withRel("create"));
 
         return resource;
     }
@@ -135,11 +132,6 @@ public class ReceiptController {
         receiptResource.setId(id);
 
         ReceiptResource updatedResource = this.receiptAssembler.toModel(this.receiptService.update(receiptResource));
-
-        updatedResource.add(linkTo(methodOn(ReceiptController.class).getById(auth, id)).withSelfRel());
-        updatedResource.add(linkTo(methodOn(ReceiptController.class).update(auth, id, null)).withRel("update"));
-        updatedResource.add(linkTo(methodOn(ReceiptController.class).remove(auth, id)).withRel("remove"));
-        updatedResource.add(linkTo(methodOn(ReceiptController.class).create(auth, null)).withRel("create"));
 
         return updatedResource;
     }
@@ -179,15 +171,9 @@ public class ReceiptController {
                                 page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
         ));
 
-
-        CollectionModel<List<ReceiptResource>> resource
-                = new CollectionModel<>(Collections.singleton(
-                        page.getContent().stream().map(receiptAssembler::toModel).collect(Collectors.toList()))
-        );
-
-        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.next())).withRel("next"));
-        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.previousOrFirst())).withRel("prev"));
-        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.first())).withRel("first"));
+//        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.next())).withRel("next"));
+//        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.previousOrFirst())).withRel("prev"));
+//        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.first())).withRel("first"));
 
         return paged;
     }
