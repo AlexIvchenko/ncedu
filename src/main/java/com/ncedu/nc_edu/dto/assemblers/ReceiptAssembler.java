@@ -1,12 +1,11 @@
 package com.ncedu.nc_edu.dto.assemblers;
 
 import com.ncedu.nc_edu.controllers.ReceiptController;
-import com.ncedu.nc_edu.controllers.TagController;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.security.CustomUserDetails;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,13 +22,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
 public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receipt, ReceiptResource> {
-    private final TagAssembler tagAssembler;
-    private final StepAssembler stepAssembler;
-
-    public ReceiptAssembler(@Autowired TagAssembler tagAssembler, @Autowired StepAssembler stepAssembler) {
+    public ReceiptAssembler() {
         super(Receipt.class, ReceiptResource.class);
-        this.tagAssembler = tagAssembler;
-        this.stepAssembler = stepAssembler;
     }
 
     @Override
@@ -49,10 +43,14 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
         resource.setProteins(entity.getProteins());
         resource.setRating(entity.getRating());
         resource.setOwner(entity.getOwner().getId());
+        resource.setCookingTime(entity.getCookingTime());
+        resource.setPrice(entity.getPrice());
+        resource.setCookingMethod(entity.getCookingMethod().toString());
+        resource.setCuisine(entity.getCuisine().toString());
 
-        resource.setTags(entity.getTags().stream().map(tagAssembler::toModel).collect(Collectors.toSet()));
-
-        resource.setSteps(entity.getSteps().stream().map(stepAssembler::toModel).collect(Collectors.toList()));
+        resource.setTags(entity.getTags().stream()
+                .map(Tag::getName).collect(Collectors.toSet())
+        );
 
         resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));

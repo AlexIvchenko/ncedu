@@ -15,7 +15,6 @@ public class TagAssembler extends RepresentationModelAssemblerSupport<Tag, TagRe
     public TagResource toModel(Tag entity) {
         TagResource resource = new TagResource();
 
-        resource.setId(entity.getId());
         resource.setName(entity.getName());
 
         return resource;

@@ -1,7 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.resources.TagResource;
-import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.repositories.TagRepository;
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -28,28 +27,26 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Tag findById(UUID id) {
-        return tagRepository.findById(id).orElseThrow(()-> new EntityDoesNotExistsException("tag"));
+    public Tag findByName(String name) {
+        return tagRepository.findById(name).orElseThrow(()-> new EntityDoesNotExistsException("tag"));
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        return tagRepository.existsById(name);
     }
 
     @Override
     public Tag add(TagResource newTag) {
-        tagRepository.findByName(newTag.getName()).orElseThrow(() -> new AlreadyExistsException("Tag", "name"));
+        Optional<Tag> tagOptional = tagRepository.findById(newTag.getName());
+
+        if (tagOptional.isPresent()) {
+            return tagOptional.get();
+        }
 
         Tag tag = new Tag();
-        tag.setId(UUID.randomUUID());
         tag.setName(newTag.getName());
 
         return tagRepository.save(tag);
-    }
-
-    @Override
-    public Tag update(TagResource updatedTag) {
-        Tag oldTag = tagRepository.findById(updatedTag.getId()).orElseThrow(() -> new EntityDoesNotExistsException("Tag"));
-        tagRepository.findByName(updatedTag.getName()).orElseThrow(() -> new AlreadyExistsException("Tag", "name"));
-
-        oldTag.setName(updatedTag.getName());
-
-        return tagRepository.save(oldTag);
     }
 }
