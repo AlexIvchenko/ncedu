@@ -42,7 +42,6 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
         resource.setCarbohydrates(entity.getCarbohydrates());
         resource.setProteins(entity.getProteins());
         resource.setRating(entity.getRating());
-        resource.setOwner(entity.getOwner().getId());
         resource.setCookingTime(entity.getCookingTime());
         resource.setPrice(entity.getPrice());
         resource.setCookingMethod(entity.getCookingMethod().toString());
@@ -53,6 +52,7 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
         );
 
         resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
+        resource.add(linkTo(methodOn(ReceiptController.class).getReceiptSteps(entity.getId())).withRel("steps").withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));
 
         if (roles.contains(new SimpleGrantedAuthority("ROLE_MODERATOR"))

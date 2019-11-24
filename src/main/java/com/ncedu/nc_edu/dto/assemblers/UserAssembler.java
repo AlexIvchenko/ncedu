@@ -3,6 +3,7 @@ package com.ncedu.nc_edu.dto.assemblers;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.UserRole.*;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.security.core.Authentication;
@@ -33,32 +34,28 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
     public UserResource toModel(User entity) {
         UserResource userResource = new UserResource();
         userResource.setId(entity.getId());
-        userResource.setEmail(entity.getEmail());
         userResource.setUsername(entity.getUsername());
-        userResource.setGender(entity.getGender().toString());
-        userResource.setBirthday(entity.getBirthday());
-        userResource.setHeight(entity.getHeight());
-        userResource.setWeight(entity.getWeight());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Set<GrantedAuthority> roles = new HashSet<>((authentication.getAuthorities()));
         CustomUserDetails currentUser;
 
-        if (!roles.contains(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))) {
+        if (!roles.contains(new SimpleGrantedAuthority(UserRoles.ANONYMOUS.getString()))) {
             currentUser = (CustomUserDetails) authentication.getPrincipal();
         } else {
             currentUser = new CustomUserDetails(entity);
         }
 
         userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
-        if (roles.contains(new SimpleGrantedAuthority("ROLE_MODERATOR"))
-                || roles.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
+        userResource.add(linkTo(methodOn(controllerClass).getReceipts(userResource.getId(), null)).withRel("receipts").withType("GET"));
+        if (roles.contains(new SimpleGrantedAuthority(UserRoles.MODERATOR.getString()))
+                || roles.contains(new SimpleGrantedAuthority(UserRoles.ADMIN.getString()))
                 || currentUser.getUser().getId().equals(entity.getId())
         ){
             userResource.add(linkTo(methodOn(controllerClass).getUserFilters(userResource.getId())).withRel("filters").withType("GET"));
             userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
-            userResource.add(linkTo(methodOn(controllerClass).update(userResource.getId(), userResource)).withRel("update").withType("PUT"));
+            userResource.add(linkTo(methodOn(controllerClass).getInfo(userResource.getId())).withRel("info").withType("GET"));
         }
 
         return userResource;

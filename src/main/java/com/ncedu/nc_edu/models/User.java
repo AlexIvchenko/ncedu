@@ -59,6 +59,9 @@ public class User {
     private List<UserReview> reviews;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    private List<Receipt> receipts;
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     @OrderColumn(name = "index")
     private List<ItemCategory> categories;
 

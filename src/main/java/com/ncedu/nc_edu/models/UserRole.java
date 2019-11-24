@@ -14,6 +14,23 @@ import java.util.UUID;
 @Table(name = "roles", schema = "public")
 @Data
 public class UserRole {
+    public enum UserRoles {
+        USER("ROLE_USER"),
+        ADMIN("ROLE_ADMIN"),
+        MODERATOR("ROLE_MODERATOR"),
+        ANONYMOUS("ROLE_ANONYMOUS");
+
+        private String value;
+
+        UserRoles(String value) {
+            this.value = value;
+        }
+
+        public String getString() {
+            return this.value;
+        }
+    }
+
     @Id
     @Column(name = "id")
     @Type(type = "uuid-char")

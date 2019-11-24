@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.controllers;
 
+import com.ncedu.nc_edu.dto.ReceiptWithStepsDTO;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptStepAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -86,20 +88,20 @@ public class ReceiptController {
     }
 
     @PostMapping(value = "/receipts")
-    public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptResource receiptResource) {
-        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
+    public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsDTO receipt) {
+        User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
         Set<String> authorities = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
 
-        receiptResource.getSteps().forEach(step -> {
+        receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
             }
         });
 
-        log.debug(receiptResource.toString());
+        log.debug(receipt.getReceiptResource().toString());
 
-        ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receiptResource, user));
+        ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receipt, user));
 
         log.debug(resource.toString());
 
@@ -110,7 +112,7 @@ public class ReceiptController {
     public ReceiptResource update(
             Authentication auth,
             @PathVariable UUID id,
-            @RequestBody @Valid ReceiptResource receiptResource
+            @RequestBody @Valid ReceiptWithStepsDTO receipt
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
         Set<String> authorities = auth.getAuthorities().stream()
@@ -123,15 +125,15 @@ public class ReceiptController {
             throw new AccessDeniedException("You do not have access to update this receipt");
         }
 
-        receiptResource.getSteps().forEach(step -> {
+        receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
             }
         });
 
-        receiptResource.setId(id);
+        receipt.getReceiptResource().setId(id);
 
-        ReceiptResource updatedResource = this.receiptAssembler.toModel(this.receiptService.update(receiptResource));
+        ReceiptResource updatedResource = this.receiptAssembler.toModel(this.receiptService.update(receipt));
 
         return updatedResource;
     }
