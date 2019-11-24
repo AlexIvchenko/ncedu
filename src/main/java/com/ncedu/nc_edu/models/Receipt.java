@@ -94,6 +94,6 @@ public class Receipt {
     public enum Cuisine {
         RUSSIAN,
         ITALIAN,
-        JAPANESE
+        JAPANESE;
     }
 }

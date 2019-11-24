@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -154,7 +155,7 @@ public class ReceiptController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping(value = "/receipts/search")
+    @PostMapping(value = "/receipts/search")
     public PagedModel search(
             Authentication auth,
             @RequestBody(required = false) @Valid ReceiptSearchCriteria receiptSearchCriteria,
@@ -176,5 +177,19 @@ public class ReceiptController {
 //        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.first())).withRel("first"));
 
         return paged;
+    }
+
+    @GetMapping("/receipts/cookingMethods")
+    public CollectionModel<String> getAvailableCookingMethods() {
+        return new CollectionModel<>(
+                Stream.of(Receipt.CookingMethod.values()).map(Enum::toString).collect(Collectors.toSet())
+        );
+    }
+
+    @GetMapping("/receipts/cuisines")
+    public CollectionModel<String> getAvailableCuisines() {
+        return new CollectionModel<>(
+                Stream.of(Receipt.Cuisine.values()).map(Enum::toString).collect(Collectors.toSet())
+        );
     }
 }

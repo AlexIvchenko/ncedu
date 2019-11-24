@@ -57,5 +57,8 @@ public class ReceiptSearchCriteria {
     private Set<String> includeTags;
     private Set<String> excludeTags;
 
-    private Set<String> cuisines;
+    private Set<
+            @ValueOfEnum(value = Receipt.Cuisine.class, message = "Cuisine must be any of " +
+                    "RUSSIAN|ITALIAN|JAPANESE") String
+            > cuisines;
 }
