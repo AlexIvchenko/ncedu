@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -135,14 +134,6 @@ public class UserServiceImpl implements UserService {
         }
 
         return userRepository.save(oldUser);
-    }
-
-    @Override
-    public List<Filter> getUserFiltersById(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new EntityDoesNotExistsException("User with id " + id))
-                .getUsersFilters().stream()
-                .map(UsersFilters::getFilter).collect(Collectors.toList());
     }
 
     @Override

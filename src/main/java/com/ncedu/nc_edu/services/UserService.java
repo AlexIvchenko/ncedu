@@ -12,8 +12,6 @@ public interface UserService {
     User registerUser(String email, String password) throws AlreadyExistsException;
     List<User> findAllUsers();
 
-    List<Filter> getUserFiltersById(UUID id);
-
     List<UserReview> getReviewsById(UUID id);
 
     List<Receipt> getReceiptsById(UUID id);
