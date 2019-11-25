@@ -7,6 +7,7 @@ import lombok.Data;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 public class ReceiptSearchCriteria {
@@ -56,6 +57,9 @@ public class ReceiptSearchCriteria {
 
     private Set<String> includeTags;
     private Set<String> excludeTags;
+
+    private Set<UUID> includeIngredients;
+    private Set<UUID> excludeIngredients;
 
     private Set<
             @ValueOfEnum(value = Receipt.Cuisine.class, message = "Cuisine must be any of " +

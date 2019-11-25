@@ -1,6 +1,7 @@
 package com.ncedu.nc_edu.models;
 
 import lombok.Data;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -12,9 +13,11 @@ import java.util.UUID;
 @Data
 public class IngredientsReceiptsId implements Serializable {
     @Column(name = "receipt_id")
+    @Type(type = "uuid-char")
     private UUID receiptId;
 
     @Column(name = "ingredient_id")
+    @Type(type = "uuid-char")
     private UUID ingredientId;
 
     public IngredientsReceiptsId() {

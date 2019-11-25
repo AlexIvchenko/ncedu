@@ -42,7 +42,6 @@ public class Receipt {
     @OneToMany(mappedBy = "receipt")
     private Set<IngredientsReceipts> ingredientsReceiptsDTOs;
 
-
     @ManyToMany
     @JoinTable(
             name = "tags_receipts",

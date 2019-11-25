@@ -1,16 +1,14 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
 import com.ncedu.nc_edu.dto.resources.ReceiptStepResource;
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
-import com.ncedu.nc_edu.models.Receipt;
-import com.ncedu.nc_edu.models.ReceiptStep;
-import com.ncedu.nc_edu.models.Tag;
-import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.ReceiptRepository;
+import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.ReceiptService;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +27,15 @@ import java.util.stream.Collectors;
 public class ReceiptServiceImpl implements ReceiptService {
     private final ReceiptRepository receiptRepository;
     private final TagService tagService;
+    private final IngredientService ingredientService;
 
     public ReceiptServiceImpl(
             @Autowired ReceiptRepository receiptRepository,
-            @Autowired TagService tagService) {
+            @Autowired TagService tagService,
+            @Autowired IngredientService ingredientService) {
         this.receiptRepository = receiptRepository;
         this.tagService = tagService;
+        this.ingredientService = ingredientService;
     }
 
     public Page<Receipt> findAll(Pageable pageable) {
@@ -202,7 +203,7 @@ public class ReceiptServiceImpl implements ReceiptService {
                 } else {
                     return null;
                 }
-            }).filter(Objects::nonNull).collect(Collectors.toList()));
+            }).filter(Objects::nonNull).collect(Collectors.toSet()));
         }
 
         if (receiptSearchCriteria.getExcludeTags() != null) {
@@ -212,11 +213,40 @@ public class ReceiptServiceImpl implements ReceiptService {
                 } else {
                     return null;
                 }
-            }).filter(Objects::nonNull).collect(Collectors.toList()));
+            }).filter(Objects::nonNull).collect(Collectors.toSet()));
+        }
+
+        Set<Ingredient> includeIngredients = new HashSet<>();
+        Set<Ingredient> excludeIngredients = new HashSet<>();
+
+        if (receiptSearchCriteria.getIncludeIngredients() != null) {
+            includeIngredients.addAll(receiptSearchCriteria.getIncludeIngredients().stream().map(ingredient -> {
+                if (ingredientService.existsById(ingredient)) {
+                    return ingredientService.findById(ingredient);
+                } else {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toSet()));
+        }
+
+        if (receiptSearchCriteria.getExcludeIngredients() != null) {
+            excludeIngredients.addAll(receiptSearchCriteria.getExcludeIngredients().stream().map(ingredient -> {
+                if (ingredientService.existsById(ingredient)) {
+                    return ingredientService.findById(ingredient);
+                } else {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toSet()));
         }
 
         return this.receiptRepository.findAll(
-                new ReceiptSearchSpecification(receiptSearchCriteria, includeTags, excludeTags),
+                new ReceiptSearchSpecification(
+                        receiptSearchCriteria,
+                        includeTags,
+                        excludeTags,
+                        includeIngredients,
+                        excludeIngredients
+                ),
                 pageable
         );
     }

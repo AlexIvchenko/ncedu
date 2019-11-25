@@ -155,59 +155,6 @@ create table if not exists ingredients_receipts
     value real
 );
 
-create table if not exists user_filters
-(
-    id varchar(36) not null
-        constraint user_filters_pk
-            primary key,
-    name varchar(255),
-    enabled_from date,
-    enabled_until date,
-    creator varchar(36)
-        constraint user_filters_users_id_fk
-            references users
-);
-
-create table if not exists global_filters
-(
-    id varchar(36) not null
-        constraint global_filters_pk
-            primary key,
-    name varchar(255),
-    enabled_from date,
-    enabled_until date
-);
-
-create table if not exists filters_tags
-(
-    filter_id varchar(36)
-        constraint filters_tags_global_filters_id_fk
-            references global_filters
-            on delete cascade
-        constraint filters_tags_user_filters_id_fk
-            references user_filters
-            on delete cascade,
-    tag_name varchar(36)
-        constraint filters_tags_tags_name_fk
-            references tags
-            on delete cascade
-);
-
-create table if not exists filter_ingredients
-(
-    filter_id varchar(36)
-        constraint filter_ingredients_global_filters_id_fk
-            references global_filters
-            on delete cascade
-        constraint filter_ingredients_user_filters_id_fk
-            references user_filters
-            on delete cascade,
-    ingredient_id varchar(36)
-        constraint filter_ingredients_ingredients_id_fk
-            references ingredients
-            on delete cascade
-);
-
 create table if not exists receipt_reviews
 (
     id varchar(36) not null

@@ -1,6 +1,8 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
+import com.ncedu.nc_edu.models.Ingredient;
+import com.ncedu.nc_edu.models.IngredientsReceipts;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.Tag;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,11 +14,20 @@ import java.util.stream.Collectors;
 public class ReceiptSearchSpecification implements Specification<Receipt> {
     private ReceiptSearchCriteria criteria;
     private Set<Tag> includeTags, excludeTags;
+    private Set<Ingredient> includeIngredients, excludeIngredients;
 
-    public ReceiptSearchSpecification(ReceiptSearchCriteria criteria, Set<Tag> includeTags, Set<Tag> excludeTags) {
+    public ReceiptSearchSpecification(
+            ReceiptSearchCriteria criteria,
+            Set<Tag> includeTags,
+            Set<Tag> excludeTags,
+            Set<Ingredient> includeIngredients,
+            Set<Ingredient> excludeIngredients
+    ) {
         this.criteria = criteria;
         this.includeTags = includeTags;
         this.excludeTags = excludeTags;
+        this.includeIngredients = includeIngredients;
+        this.excludeIngredients = excludeIngredients;
     }
 
     @Override
@@ -110,6 +121,14 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
 
         if (this.excludeTags.size() > 0) {
             spec = spec.and(notContainTags(this.excludeTags));
+        }
+
+        if (this.includeIngredients.size() > 0) {
+            spec = spec.and(containIngredients(this.includeIngredients));
+        }
+
+        if (this.excludeIngredients.size() > 0) {
+            spec = spec.and(notContainIngredients(this.excludeIngredients));
         }
 
         return spec;
@@ -228,6 +247,44 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
                                     criteriaBuilder.count(receipt), tags.size()
                                     )
                             ).where(receiptTagSetJoin.in(tags))
+            ));
+        };
+    }
+
+    private Specification<Receipt> containIngredients(Set<Ingredient> ingredients) {
+        return (root, query, criteriaBuilder) -> {
+            Subquery<Receipt> sq = query.subquery(Receipt.class);
+            Root<Receipt> receipt = sq.from(Receipt.class);
+            SetJoin<Receipt, IngredientsReceipts> ingredientsReceipts
+                    = receipt.joinSet("ingredientsReceiptsDTOs", JoinType.INNER);
+            Join<IngredientsReceipts, Ingredient> ingredientsJoin
+                    = ingredientsReceipts.join("ingredient", JoinType.INNER);
+
+            return root.in(
+                    sq.select(receipt).groupBy(receipt.get("id"))
+                            .having(criteriaBuilder.equal(
+                                    criteriaBuilder.count(receipt), ingredients.size()
+                                    )
+                            ).where(ingredientsJoin.in(ingredients))
+            );
+        };
+    }
+
+    private Specification<Receipt> notContainIngredients(Set<Ingredient> ingredients) {
+        return (root, query, criteriaBuilder) -> {
+            Subquery<Receipt> sq = query.subquery(Receipt.class);
+            Root<Receipt> receipt = sq.from(Receipt.class);
+            SetJoin<Receipt, IngredientsReceipts> ingredientsReceipts
+                    = receipt.joinSet("ingredientsReceiptsDTOs", JoinType.INNER);
+            Join<IngredientsReceipts, Ingredient> ingredientsJoin
+                    = ingredientsReceipts.join("ingredient", JoinType.INNER);
+
+            return criteriaBuilder.not(root.in(
+                    sq.select(receipt).groupBy(receipt.get("id"))
+                            .having(criteriaBuilder.equal(
+                                    criteriaBuilder.count(receipt), ingredients.size()
+                                    )
+                            ).where(ingredientsJoin.in(ingredients))
             ));
         };
     }

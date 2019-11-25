@@ -4,6 +4,7 @@ import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
 import com.ncedu.nc_edu.models.Receipt;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minidev.json.JSONObject;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.*;
@@ -58,7 +59,7 @@ public class ReceiptResource extends RepresentationModel<ReceiptResource> {
 
     private Set<String> tags;
 
-    //private List<ReceiptStepResource> steps;
+    private List<JSONObject> ingredients;
 
     /**
      * Field only for returning. Should be never updated.

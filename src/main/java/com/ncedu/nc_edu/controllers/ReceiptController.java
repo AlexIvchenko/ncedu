@@ -1,11 +1,11 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptStepAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
 import com.ncedu.nc_edu.dto.resources.ReceiptStepResource;
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
@@ -17,17 +17,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.server.core.EmbeddedWrapper;
+import org.springframework.hateoas.server.core.EmbeddedWrappers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,11 +75,18 @@ public class ReceiptController {
     }
 
     @GetMapping(value = "/receipts/{id}/steps")
-    public CollectionModel<List<ReceiptStepResource>> getReceiptSteps(@PathVariable UUID id) {
-        CollectionModel<List<ReceiptStepResource>> resource = new CollectionModel<>(Collections.singleton(
+    public CollectionModel<ReceiptStepResource> getReceiptSteps(@PathVariable UUID id) {
+        CollectionModel<ReceiptStepResource> resource = new CollectionModel<>(
                 this.receiptService.findById(id).getSteps().stream()
                         .map(receiptStepAssembler::toModel).collect(Collectors.toList())
-        ));
+        );
+
+        if (resource.getContent().size() == 0) {
+            EmbeddedWrappers wrappers = new EmbeddedWrappers(false);
+            EmbeddedWrapper wrapper = wrappers.emptyCollectionOf(ReceiptStepResource.class);
+            List<EmbeddedWrapper> list = Collections.singletonList(wrapper);
+            return new CollectionModel(list);
+        }
 
         resource.add(linkTo(methodOn(ReceiptController.class).getById(null, id)).withRel("receipt"));
 
@@ -113,7 +119,6 @@ public class ReceiptController {
             @RequestBody @Valid ReceiptWithStepsResource receipt
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-
 
         receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {

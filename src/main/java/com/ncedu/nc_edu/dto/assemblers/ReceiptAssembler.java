@@ -5,18 +5,13 @@ import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.Tag;
-import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.security.SecurityUtils;
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -24,12 +19,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
 public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receipt, ReceiptResource> {
-
     private final SecurityUtils securityUtils;
+    private final IngredientAssembler ingredientAssembler;
 
-    public ReceiptAssembler(@Autowired SecurityUtils securityUtils) {
+    public ReceiptAssembler(@Autowired SecurityUtils securityUtils,
+                            @Autowired IngredientAssembler ingredientAssembler) {
         super(Receipt.class, ReceiptResource.class);
         this.securityUtils = securityUtils;
+        this.ingredientAssembler = ingredientAssembler;
     }
 
     @Override
@@ -51,6 +48,17 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
 
         resource.setTags(entity.getTags().stream()
                 .map(Tag::getName).collect(Collectors.toSet())
+        );
+
+        resource.setIngredients(entity.getIngredientsReceiptsDTOs().stream()
+                .map(ingredientReceipt -> {
+                    JSONObject json = new JSONObject();
+                    json.put("id", ingredientReceipt.getIngredient().getId());
+                    json.put("name", ingredientReceipt.getIngredient().getName());
+                    json.put("valueType", ingredientReceipt.getValueType());
+                    json.put("value", ingredientReceipt.getValue());
+                    return json;
+                }).collect(Collectors.toList())
         );
 
         resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
