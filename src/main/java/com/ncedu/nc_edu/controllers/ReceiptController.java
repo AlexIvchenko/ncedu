@@ -89,8 +89,6 @@ public class ReceiptController {
     @PostMapping(value = "/receipts")
     public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsResource receipt) {
         User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
 
         receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
@@ -114,15 +112,7 @@ public class ReceiptController {
             @RequestBody @Valid ReceiptWithStepsResource receipt
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
 
-        if (!(authorities.contains("ROLE_MODERATOR")
-                || authorities.contains("ROLE_ADMIN")
-                || user.getId().equals(receiptService.findById(id).getOwner().getId()))
-        ) {
-            throw new AccessDeniedException("You do not have access to update this receipt");
-        }
 
         receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
@@ -140,15 +130,6 @@ public class ReceiptController {
     @DeleteMapping(value = "/receipts/{id}")
     public ResponseEntity<Void> remove(Authentication auth, @PathVariable UUID id) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-
-        if (!(authorities.contains("ROLE_MODERATOR")
-                || authorities.contains("ROLE_ADMIN")
-                || user.getId().equals(receiptService.findById(id).getOwner().getId()))
-        ) {
-            throw new AccessDeniedException("You do not have access to remove this receipt");
-        }
 
         this.receiptService.removeById(id);
 

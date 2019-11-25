@@ -40,21 +40,23 @@ public class UserController {
     private final UserService userService;
     private final UserAssembler userAssembler;
     private final UserInfoAssembler userInfoAssembler;
+    private final ReceiptAssembler receiptAssembler;
 
     public UserController(@Autowired UserService userService,
                           @Autowired UserAssembler userAssembler,
-                          @Autowired UserInfoAssembler userInfoAssembler) {
+                          @Autowired UserInfoAssembler userInfoAssembler,
+                          @Autowired ReceiptAssembler receiptAssembler) {
         this.userService = userService;
         this.userAssembler = userAssembler;
         this.userInfoAssembler = userInfoAssembler;
+        this.receiptAssembler = receiptAssembler;
     }
 
     @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
     public RepresentationModel<UserResource> add(
             @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
-            @RequestParam @NotBlank(message = "cannot be empty") String password
-            )
+            @RequestParam @NotBlank(message = "cannot be empty") String password)
     {
         User user;
         user = userService.registerUser(email, password);
@@ -85,8 +87,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/users/{id}/receipts")
-    public CollectionModel<List<ReceiptResource>> getReceipts(@PathVariable UUID id,
-                                                  @Autowired ReceiptAssembler receiptAssembler) {
+    public CollectionModel<List<ReceiptResource>> getReceipts(@PathVariable UUID id) {
         CollectionModel<List<ReceiptResource>> resource = new CollectionModel<List<ReceiptResource>>(
                 Collections.singleton(userService.getReceiptsById(id).stream()
                         .map(receiptAssembler::toModel)
@@ -117,7 +118,6 @@ public class UserController {
      */
     @PutMapping(value = "/users/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("#id == authentication.principal.getUser().getId() or hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
     public RepresentationModel<UserInfoResource> update(
             @PathVariable UUID id,
             @Valid @RequestBody UserInfoResource userResource)

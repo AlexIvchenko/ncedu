@@ -33,9 +33,6 @@ public class TagController {
 
     @GetMapping("/tags")
     public CollectionModel<List<TagResource>> getAll(Authentication auth) {
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-
 
         List<TagResource> tags = this.tagService.findAll().stream()
                 .map(tag -> {

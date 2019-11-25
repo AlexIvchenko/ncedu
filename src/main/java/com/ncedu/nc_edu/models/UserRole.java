@@ -2,6 +2,8 @@ package com.ncedu.nc_edu.models;
 
 import lombok.Data;
 import org.hibernate.annotations.Type;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,6 +30,10 @@ public class UserRole {
 
         public String getString() {
             return this.value;
+        }
+
+        public GrantedAuthority getAuthority() {
+            return new SimpleGrantedAuthority(value);
         }
     }
 
