@@ -3,8 +3,6 @@ package com.ncedu.nc_edu.controllers;
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
-import com.ncedu.nc_edu.models.Filter;
-import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserReview;
 import com.ncedu.nc_edu.security.CustomUserDetails;
@@ -26,9 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @Slf4j
@@ -80,11 +75,6 @@ public class UserController {
     @GetMapping(value = "/users/@me")
     public RepresentationModel<UserResource> getAuthenticatedUser(Authentication auth) {
         return userAssembler.toModel(((CustomUserDetails) auth.getPrincipal()).getUser());
-    }
-
-    @GetMapping(value = "/users/{id}/filters")
-    public List<Filter> getUserFilters(@PathVariable UUID id) {
-        return userService.getUserFiltersById(id);
     }
 
     @GetMapping(value = "/users/{id}/reviews")

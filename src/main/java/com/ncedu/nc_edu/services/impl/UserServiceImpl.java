@@ -3,7 +3,10 @@ package com.ncedu.nc_edu.services.impl;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
-import com.ncedu.nc_edu.models.*;
+import com.ncedu.nc_edu.models.ItemCategory;
+import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.UserReview;
+import com.ncedu.nc_edu.models.UserRole;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;
 import com.ncedu.nc_edu.services.UserService;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -134,14 +136,6 @@ public class UserServiceImpl implements UserService {
         }
 
         return userRepository.save(oldUser);
-    }
-
-    @Override
-    public List<Filter> getUserFiltersById(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new EntityDoesNotExistsException("User with id " + id))
-                .getUsersFilters().stream()
-                .map(UsersFilters::getFilter).collect(Collectors.toList());
     }
 
     @Override
