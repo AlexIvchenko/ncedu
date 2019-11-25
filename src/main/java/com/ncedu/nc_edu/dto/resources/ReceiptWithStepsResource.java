@@ -1,4 +1,4 @@
-package com.ncedu.nc_edu.dto;
+package com.ncedu.nc_edu.dto.resources;
 
 import com.ncedu.nc_edu.dto.assemblers.UserInfoAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
@@ -11,11 +11,11 @@ import lombok.Setter;
 import java.util.List;
 
 @Data
-public class ReceiptWithStepsDTO {
+public class ReceiptWithStepsResource {
     private ReceiptResource receiptResource;
     private List<ReceiptStepResource> receiptSteps;
 
-    public ReceiptWithStepsDTO(ReceiptResource receiptResource, List<ReceiptStepResource> receiptSteps) {
+    public ReceiptWithStepsResource(ReceiptResource receiptResource, List<ReceiptStepResource> receiptSteps) {
         this.receiptResource = receiptResource;
         this.receiptSteps = receiptSteps;
     }

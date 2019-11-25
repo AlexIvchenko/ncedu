@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.dto.ReceiptWithStepsDTO;
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptStepAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -88,7 +87,7 @@ public class ReceiptController {
     }
 
     @PostMapping(value = "/receipts")
-    public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsDTO receipt) {
+    public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsResource receipt) {
         User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
         Set<String> authorities = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
@@ -112,7 +111,7 @@ public class ReceiptController {
     public ReceiptResource update(
             Authentication auth,
             @PathVariable UUID id,
-            @RequestBody @Valid ReceiptWithStepsDTO receipt
+            @RequestBody @Valid ReceiptWithStepsResource receipt
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
         Set<String> authorities = auth.getAuthorities().stream()

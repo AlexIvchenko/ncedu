@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.ReceiptWithStepsDTO;
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
 import com.ncedu.nc_edu.dto.resources.ReceiptStepResource;
@@ -60,7 +60,7 @@ public class ReceiptServiceImpl implements ReceiptService {
     }
 
     @Override
-    public Receipt update(ReceiptWithStepsDTO dto) {
+    public Receipt update(ReceiptWithStepsResource dto) {
         ReceiptResource resource = dto.getReceiptResource();
         List<ReceiptStepResource> resourceSteps = dto.getReceiptSteps();
         Receipt oldReceipt = this.receiptRepository.findById(resource.getId())
@@ -144,7 +144,7 @@ public class ReceiptServiceImpl implements ReceiptService {
     }
 
     @Override
-    public Receipt create(ReceiptWithStepsDTO dto, User owner) {
+    public Receipt create(ReceiptWithStepsResource dto, User owner) {
         ReceiptResource resource = dto.getReceiptResource();
         List<ReceiptStepResource> steps = dto.getReceiptSteps();
 

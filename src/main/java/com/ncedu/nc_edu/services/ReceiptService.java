@@ -1,7 +1,6 @@
 package com.ncedu.nc_edu.services;
 
-import com.ncedu.nc_edu.dto.ReceiptWithStepsDTO;
-import com.ncedu.nc_edu.dto.resources.ReceiptResource;
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
 import com.ncedu.nc_edu.models.Receipt;
 import com.ncedu.nc_edu.models.User;
@@ -17,7 +16,7 @@ public interface ReceiptService {
     Page<Receipt> findAll(Pageable pageable);
     List<Receipt> findAllOwn(User user);
     void removeById(UUID id);
-    Receipt update(ReceiptWithStepsDTO dto);
-    Receipt create(ReceiptWithStepsDTO dto, User owner);
+    Receipt update(ReceiptWithStepsResource dto);
+    Receipt create(ReceiptWithStepsResource dto, User owner);
     Page<Receipt> search(ReceiptSearchCriteria receiptSearchCriteria, Pageable pageable);
 }
