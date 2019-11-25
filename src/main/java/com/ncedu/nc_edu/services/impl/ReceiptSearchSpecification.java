@@ -37,7 +37,7 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
         }
 
         if (criteria.getCaloriesMax() != null) {
-            spec = spec.and(caloriesLessThanOrEqualTo(criteria.getCaloriesMin()));
+            spec = spec.and(caloriesLessThanOrEqualTo(criteria.getCaloriesMax()));
         }
 
         if (criteria.getFatsMin() != null) {
@@ -73,9 +73,11 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
         }
 
         if (criteria.getCookingMethods() != null) {
-            spec = spec.and(inCookingMethods(
-                    criteria.getCookingMethods().stream().map(Receipt.CookingMethod::valueOf).collect(Collectors.toSet()))
-            );
+            if (criteria.getCookingMethods().size() != 0) {
+                spec = spec.and(inCookingMethods(
+                        criteria.getCookingMethods().stream().map(Receipt.CookingMethod::valueOf).collect(Collectors.toSet()))
+                );
+            }
         }
 
         if (criteria.getCookingTimeMin() != null) {
@@ -95,9 +97,11 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
         }
 
         if (criteria.getCuisines() != null) {
-            spec = spec.and(inCuisines(criteria.getCuisines()
-                    .stream().map(Receipt.Cuisine::valueOf).collect(Collectors.toSet()))
-            );
+            if (criteria.getCuisines().size() != 0) {
+                spec = spec.and(inCuisines(criteria.getCuisines()
+                        .stream().map(Receipt.Cuisine::valueOf).collect(Collectors.toSet()))
+                );
+            }
         }
 
         if (this.includeTags.size() > 0) {

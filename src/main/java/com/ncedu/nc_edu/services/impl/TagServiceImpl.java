@@ -6,6 +6,7 @@ import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.repositories.TagRepository;
 import com.ncedu.nc_edu.services.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,11 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<Tag> findAll() {
         return tagRepository.findAll();
+    }
+
+    @Override
+    public List<Tag> findAllByNameContains(String name) {
+        return this.tagRepository.findAllByNameContaining(name, PageRequest.of(0, 10)).getContent();
     }
 
     @Override
