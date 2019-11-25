@@ -3,7 +3,6 @@ package com.ncedu.nc_edu.controllers;
 import com.ncedu.nc_edu.models.Ingredient;
 import com.ncedu.nc_edu.services.IngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
@@ -31,13 +30,11 @@ public class IngredientController {
     }
 
     @PostMapping(value = "/ingredients")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
     public Ingredient add(@RequestParam @NotNull String name) {
         return ingredientService.add(name);
     }
 
     @PutMapping(value = "/ingredients/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
     public Ingredient update(@PathVariable UUID id, @RequestBody Ingredient ingredient) {
         return ingredientService.update(ingredient);
     }

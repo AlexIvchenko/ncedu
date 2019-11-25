@@ -1,7 +1,10 @@
 package com.ncedu.nc_edu.controllers;
 
+import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
+import com.ncedu.nc_edu.dto.assemblers.UserInfoAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
+import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.Filter;
 import com.ncedu.nc_edu.models.Receipt;
@@ -36,18 +39,24 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class UserController {
     private final UserService userService;
     private final UserAssembler userAssembler;
+    private final UserInfoAssembler userInfoAssembler;
+    private final ReceiptAssembler receiptAssembler;
 
-    public UserController(@Autowired UserService userService, @Autowired UserAssembler userAssembler) {
+    public UserController(@Autowired UserService userService,
+                          @Autowired UserAssembler userAssembler,
+                          @Autowired UserInfoAssembler userInfoAssembler,
+                          @Autowired ReceiptAssembler receiptAssembler) {
         this.userService = userService;
         this.userAssembler = userAssembler;
+        this.userInfoAssembler = userInfoAssembler;
+        this.receiptAssembler = receiptAssembler;
     }
 
     @PostMapping(value = "/register")
     @ResponseStatus(HttpStatus.CREATED)
     public RepresentationModel<UserResource> add(
             @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
-            @RequestParam @NotBlank(message = "cannot be empty") String password
-            )
+            @RequestParam @NotBlank(message = "cannot be empty") String password)
     {
         User user;
         user = userService.registerUser(email, password);
@@ -68,13 +77,22 @@ public class UserController {
     public RepresentationModel<UserResource> getById(@PathVariable UUID id) {
         User user;
         user = userService.findUserById(id);
-        UserResource userResource = userAssembler.toModel(user);
-        return userResource;
+        return userAssembler.toModel(user);
+    }
+
+    @GetMapping(value = "/users/{id}/info")
+    public RepresentationModel<UserInfoResource> getInfo(@PathVariable UUID id) { ;
+        User user = userService.findUserById(id);
+        return userInfoAssembler.toModel(user);
     }
 
     @GetMapping(value = "/users/{id}/receipts")
-    public CollectionModel<List<ReceiptResource>> getReceiptsById(@PathVariable UUID id) {
-        return null;
+    public CollectionModel<List<ReceiptResource>> getReceipts(@PathVariable UUID id) {
+        CollectionModel<List<ReceiptResource>> resource = new CollectionModel<List<ReceiptResource>>(
+                Collections.singleton(userService.getReceiptsById(id).stream()
+                        .map(receiptAssembler::toModel)
+                        .collect(Collectors.toList())));
+        return resource;
     }
 
     @GetMapping(value = "/users/@me")
@@ -100,14 +118,12 @@ public class UserController {
      */
     @PutMapping(value = "/users/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("#id == authentication.principal.getUser().getId() or hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
-    public RepresentationModel<UserResource> update(
+    public RepresentationModel<UserInfoResource> update(
             @PathVariable UUID id,
-            @Valid @RequestBody UserResource userResource)
+            @Valid @RequestBody UserInfoResource userResource)
     {
         log.info(userResource.toString());
         userResource.setId(id);
-        UserResource updatedUser = userAssembler.toModel(userService.update(userResource));
-        return updatedUser;
+        return userInfoAssembler.toModel(userService.update(userResource));
     }
 }

@@ -58,10 +58,10 @@ public class ReceiptResource extends RepresentationModel<ReceiptResource> {
 
     private Set<String> tags;
 
-    private List<ReceiptStepResource> steps;
+    //private List<ReceiptStepResource> steps;
 
     /**
      * Field only for returning. Should be never updated.
      */
-    private UUID owner;
+    //private UUID owner;
 }
