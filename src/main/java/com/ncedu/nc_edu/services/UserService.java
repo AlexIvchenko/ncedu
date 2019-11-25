@@ -1,12 +1,9 @@
 package com.ncedu.nc_edu.services;
 
-import com.ncedu.nc_edu.dto.resources.UserResource;
+import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
-import com.ncedu.nc_edu.models.Filter;
-import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserFilter;
-import com.ncedu.nc_edu.models.UserReview;
+import com.ncedu.nc_edu.models.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +16,8 @@ public interface UserService {
 
     List<UserReview> getReviewsById(UUID id);
 
+    List<Receipt> getReceiptsById(UUID id);
+
     /**
      *
      * @return User entity or exception
@@ -28,9 +27,9 @@ public interface UserService {
 
     /**
      *
-     * @param userResource user dto from request
+     * @param userInfo user dto from request
      * @return User model
      * @throws EntityDoesNotExistsException throws if user with given id cannot be found
      */
-    User update(UserResource userResource) throws EntityDoesNotExistsException, AlreadyExistsException;
+    User update(UserInfoResource userInfo) throws EntityDoesNotExistsException, AlreadyExistsException;
 }

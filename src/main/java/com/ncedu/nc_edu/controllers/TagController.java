@@ -37,12 +37,8 @@ public class TagController {
 
     @GetMapping("/tags")
     public CollectionModel<TagResource> getAll(
-            Authentication auth,
             @RequestParam(value = "name", required = false) String name
     ) {
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-
         List<Tag> tagEntities;
 
         if (name == null) {

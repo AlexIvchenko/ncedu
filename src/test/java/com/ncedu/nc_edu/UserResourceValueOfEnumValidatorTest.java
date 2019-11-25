@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu;
 
+import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserResourceValueOfEnumValidatorTest {
     @Test
     public void nullTest() {
-        UserResource user = new UserResource();
+        UserInfoResource user = new UserInfoResource();
         user.setGender(null);
         user.setPassword("123");
 
@@ -26,7 +27,7 @@ public class UserResourceValueOfEnumValidatorTest {
 
     @Test
     public void valueTest() {
-        UserResource user = new UserResource();
+        UserInfoResource user = new UserInfoResource();
         user.setGender("MALE");
         user.setPassword("123");
 

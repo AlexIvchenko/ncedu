@@ -1,7 +1,9 @@
 package com.ncedu.nc_edu.services.impl;
 
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
 import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
+import com.ncedu.nc_edu.dto.resources.ReceiptStepResource;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Receipt;
@@ -58,7 +60,9 @@ public class ReceiptServiceImpl implements ReceiptService {
     }
 
     @Override
-    public Receipt update(ReceiptResource resource) {
+    public Receipt update(ReceiptWithStepsResource dto) {
+        ReceiptResource resource = dto.getReceiptResource();
+        List<ReceiptStepResource> resourceSteps = dto.getReceiptSteps();
         Receipt oldReceipt = this.receiptRepository.findById(resource.getId())
                 .orElseThrow(() -> new EntityDoesNotExistsException("Receipt"));
 
@@ -103,14 +107,14 @@ public class ReceiptServiceImpl implements ReceiptService {
                     .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
-        if (resource.getSteps() != null) {
+        if (resourceSteps != null) {
             List<ReceiptStep> steps = oldReceipt.getSteps();
             Map<UUID, ReceiptStep> stepMap = new LinkedHashMap<>();
             for (ReceiptStep step : steps) {
                 stepMap.put(step.getId(), step);
             }
 
-            oldReceipt.setSteps(resource.getSteps().stream().map(stepResource -> {
+            oldReceipt.setSteps(resourceSteps.stream().map(stepResource -> {
                 ReceiptStep step;
                 if (stepResource.getId() != null) {
                     if (stepMap.containsKey(stepResource.getId())) {
@@ -140,7 +144,10 @@ public class ReceiptServiceImpl implements ReceiptService {
     }
 
     @Override
-    public Receipt create(ReceiptResource resource, User owner) {
+    public Receipt create(ReceiptWithStepsResource dto, User owner) {
+        ReceiptResource resource = dto.getReceiptResource();
+        List<ReceiptStepResource> steps = dto.getReceiptSteps();
+
         Receipt receipt = new Receipt();
 
         receipt.setId(UUID.randomUUID());
@@ -162,11 +169,11 @@ public class ReceiptServiceImpl implements ReceiptService {
                     .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
-        if (resource.getSteps() == null) {
+        if (steps == null) {
             throw new RequestParseException("Receipt must contain at least 1 step");
         }
 
-        receipt.setSteps(resource.getSteps().stream().map(receiptStepResource -> {
+        receipt.setSteps(steps.stream().map(receiptStepResource -> {
             ReceiptStep step = new ReceiptStep();
             step.setId(UUID.randomUUID());
             step.setDescription(receiptStepResource.getDescription());

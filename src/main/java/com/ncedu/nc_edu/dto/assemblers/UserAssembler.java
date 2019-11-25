@@ -3,7 +3,10 @@ package com.ncedu.nc_edu.dto.assemblers;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
+import com.ncedu.nc_edu.models.UserRole.*;
 import com.ncedu.nc_edu.security.CustomUserDetails;
+import com.ncedu.nc_edu.security.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,42 +26,26 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class UserAssembler extends RepresentationModelAssemblerSupport<User, UserResource> {
     private Class<UserController> controllerClass;
+    private SecurityUtils securityUtils;
 
-    public UserAssembler() {
+    public UserAssembler(@Autowired SecurityUtils securityUtils) {
         super(User.class, UserResource.class);
         this.controllerClass = UserController.class;
+        this.securityUtils = securityUtils;
     }
 
     @Override
     public UserResource toModel(User entity) {
         UserResource userResource = new UserResource();
         userResource.setId(entity.getId());
-        userResource.setEmail(entity.getEmail());
         userResource.setUsername(entity.getUsername());
-        userResource.setGender(entity.getGender().toString());
-        userResource.setBirthday(entity.getBirthday());
-        userResource.setHeight(entity.getHeight());
-        userResource.setWeight(entity.getWeight());
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        Set<GrantedAuthority> roles = new HashSet<>((authentication.getAuthorities()));
-        CustomUserDetails currentUser;
-
-        if (!roles.contains(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))) {
-            currentUser = (CustomUserDetails) authentication.getPrincipal();
-        } else {
-            currentUser = new CustomUserDetails(entity);
-        }
-
         userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
-        if (roles.contains(new SimpleGrantedAuthority("ROLE_MODERATOR"))
-                || roles.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                || currentUser.getUser().getId().equals(entity.getId())
-        ){
+        userResource.add(linkTo(methodOn(controllerClass).getReceipts(userResource.getId())).withRel("receipts").withType("GET"));
+
+        if (securityUtils.isSelfOrGranted(entity.getId())) {
             userResource.add(linkTo(methodOn(controllerClass).getUserFilters(userResource.getId())).withRel("filters").withType("GET"));
             userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
-            userResource.add(linkTo(methodOn(controllerClass).update(userResource.getId(), userResource)).withRel("update").withType("PUT"));
+            userResource.add(linkTo(methodOn(controllerClass).getInfo(userResource.getId())).withRel("info").withType("GET"));
         }
 
         return userResource;

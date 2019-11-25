@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.controllers;
 
+import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
 import com.ncedu.nc_edu.dto.assemblers.ReceiptStepAssembler;
 import com.ncedu.nc_edu.dto.resources.ReceiptResource;
@@ -87,20 +88,18 @@ public class ReceiptController {
     }
 
     @PostMapping(value = "/receipts")
-    public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptResource receiptResource) {
-        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+    public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsResource receipt) {
+        User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
 
-        receiptResource.getSteps().forEach(step -> {
+        receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
             }
         });
 
-        log.debug(receiptResource.toString());
+        log.debug(receipt.getReceiptResource().toString());
 
-        ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receiptResource, user));
+        ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receipt, user));
 
         log.debug(resource.toString());
 
@@ -111,28 +110,20 @@ public class ReceiptController {
     public ReceiptResource update(
             Authentication auth,
             @PathVariable UUID id,
-            @RequestBody @Valid ReceiptResource receiptResource
+            @RequestBody @Valid ReceiptWithStepsResource receipt
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
 
-        if (!(authorities.contains("ROLE_MODERATOR")
-                || authorities.contains("ROLE_ADMIN")
-                || user.getId().equals(receiptService.findById(id).getOwner().getId()))
-        ) {
-            throw new AccessDeniedException("You do not have access to update this receipt");
-        }
 
-        receiptResource.getSteps().forEach(step -> {
+        receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
             }
         });
 
-        receiptResource.setId(id);
+        receipt.getReceiptResource().setId(id);
 
-        ReceiptResource updatedResource = this.receiptAssembler.toModel(this.receiptService.update(receiptResource));
+        ReceiptResource updatedResource = this.receiptAssembler.toModel(this.receiptService.update(receipt));
 
         return updatedResource;
     }
@@ -140,15 +131,6 @@ public class ReceiptController {
     @DeleteMapping(value = "/receipts/{id}")
     public ResponseEntity<Void> remove(Authentication auth, @PathVariable UUID id) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Set<String> authorities = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-
-        if (!(authorities.contains("ROLE_MODERATOR")
-                || authorities.contains("ROLE_ADMIN")
-                || user.getId().equals(receiptService.findById(id).getOwner().getId()))
-        ) {
-            throw new AccessDeniedException("You do not have access to remove this receipt");
-        }
 
         this.receiptService.removeById(id);
 
