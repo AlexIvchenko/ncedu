@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu;
 
+import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import org.junit.jupiter.api.Test;
 
@@ -13,9 +14,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserResourceValueOfEnumValidatorTest {
     @Test
     public void nullTest() {
-        UserResource user = new UserResource();
-        //user.setGender(null);
-        //user.setPassword("123");
+        UserInfoResource user = new UserInfoResource();
+        user.setGender(null);
+        user.setPassword("123");
 
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
@@ -26,9 +27,9 @@ public class UserResourceValueOfEnumValidatorTest {
 
     @Test
     public void valueTest() {
-        UserResource user = new UserResource();
-        //user.setGender("MALE");
-        //user.setPassword("123");
+        UserInfoResource user = new UserInfoResource();
+        user.setGender("MALE");
+        user.setPassword("123");
 
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
@@ -36,7 +37,7 @@ public class UserResourceValueOfEnumValidatorTest {
 
         assertThat(violations.size()).isEqualTo(0);
 
-        //user.setGender("asd");
+        user.setGender("asd");
         violations = validator.validate(user);
 
         assertThat(violations.size()).isEqualTo(1);

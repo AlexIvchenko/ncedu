@@ -41,33 +41,21 @@ public class SecurityUtils {
         return new HashSet<>(getAuthentication().getAuthorities());
     }
 
-    public void info() {
-        Authentication a = SecurityContextHolder.getContext().getAuthentication();
-        boolean admin = a.getAuthorities().contains(UserRoles.MODERATOR.getAuthority());
-        boolean moder = a.getAuthorities().contains(UserRoles.ADMIN.getAuthority());
-        System.out.println("admin " + admin);
-        System.out.println("moder " + moder);
-    }
-
     public boolean isModerator() {
-        info();
         return getAuthorities().contains(UserRoles.MODERATOR.getAuthority());
     }
 
     public boolean isAdmin() {
-        info();
         return getAuthorities().contains(UserRoles.ADMIN.getAuthority());
     }
 
     public boolean isAdminOrModerator() {
-        info();
         Set<GrantedAuthority> authorities = getAuthorities();
         return authorities.contains(UserRoles.ADMIN.getAuthority())
                 || authorities.contains(UserRoles.MODERATOR.getAuthority());
     }
 
     public boolean isSelfOrGranted(UUID id) {
-        info();
         User user = getUser();
         return isAdminOrModerator() || (user != null && user.getId().equals(id));
     }
