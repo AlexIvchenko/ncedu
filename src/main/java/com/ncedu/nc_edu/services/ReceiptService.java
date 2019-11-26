@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ReceiptService {
+
     List<Receipt> findByName(String name);
     Receipt findById(UUID id);
     Page<Receipt> findAll(Pageable pageable);
@@ -18,5 +19,7 @@ public interface ReceiptService {
     void removeById(UUID id);
     Receipt update(ReceiptWithStepsResource dto);
     Receipt create(ReceiptWithStepsResource dto, User owner);
+    Receipt cloneRec(UUID id, User user);
     Page<Receipt> search(ReceiptSearchCriteria receiptSearchCriteria, Pageable pageable);
+
 }

@@ -188,6 +188,14 @@ public class ReceiptServiceImpl implements ReceiptService {
     }
 
     @Override
+    public Receipt cloneRec(UUID id, User user) {
+        Receipt receipt = new Receipt(this.receiptRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Receipt")));
+        receipt.setOwner(user);
+        return this.receiptRepository.save(receipt);
+    }
+
+    @Override
     public Page<Receipt> search(
             ReceiptSearchCriteria receiptSearchCriteria,
             Pageable pageable

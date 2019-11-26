@@ -89,7 +89,7 @@ public class ReceiptController {
 
     @PostMapping(value = "/receipts")
     public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsResource receipt) {
-        User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
+        User user = ((CustomUserDetails) (auth.getPrincipal())).getUser();
 
         receipt.getReceiptSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
@@ -128,6 +128,16 @@ public class ReceiptController {
         return updatedResource;
     }
 
+    @PostMapping(value = "/receipts/{id}/clone")
+    public ReceiptResource cloneReceipt(
+            Authentication auth,
+            @PathVariable UUID id
+    ) {
+        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
+        var tmp = this.receiptService.cloneRec(id, user);
+        return this.receiptAssembler.toModel(tmp);
+    }
+
     @DeleteMapping(value = "/receipts/{id}")
     public ResponseEntity<Void> remove(Authentication auth, @PathVariable UUID id) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
@@ -150,8 +160,8 @@ public class ReceiptController {
         Page<Receipt> page = receiptService.search(receiptSearchCriteria, pageable);
 
         PagedModel paged = PagedModel.wrap(page.getContent().stream().map(receiptAssembler::toModel)
-                        .collect(Collectors.toList()), new PagedModel.PageMetadata(
-                                page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
+                .collect(Collectors.toList()), new PagedModel.PageMetadata(
+                page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
         ));
 
 //        resource.add(linkTo(methodOn(ReceiptController.class).search(auth, receiptSearchCriteria, pageable.next())).withRel("next"));

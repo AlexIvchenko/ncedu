@@ -4,10 +4,7 @@ import lombok.Data;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "receipts", schema = "public")
@@ -40,7 +37,7 @@ public class Receipt {
     private List<ReceiptStep> steps;
 
     @OneToMany(mappedBy = "receipt")
-    private Set<IngredientsReceipts> ingredientsReceiptsDTOs;
+    private Set<IngredientsReceipts> ingredientsReceipts;
 
 
     @ManyToMany
@@ -95,5 +92,35 @@ public class Receipt {
         RUSSIAN,
         ITALIAN,
         JAPANESE;
+    }
+
+    public Receipt() {}
+
+    public Receipt(Receipt receipt) {
+        this.calories = receipt.calories;
+        this.carbohydrates = receipt.carbohydrates;
+        this.cookingMethod = receipt.cookingMethod;
+        this.cuisine = receipt.cuisine;
+        this.fats = receipt.fats;
+        this.cookingTime = receipt.cookingTime;
+        this.id = UUID.randomUUID();
+        this.ingredientsReceipts = new HashSet<>(receipt.ingredientsReceipts);
+//        this.ingredientsReceiptsDTOs.stream().peek(ingredientsReceipts -> {
+//            ingredientsReceipts.setReceipt(this);
+//            ingredientsReceipts.getId().setReceiptId(this.id);
+//        });
+//        this.ingredientsReceipts.forEach(ingredientsReceipts -> {
+//            ingredientsReceipts.setReceipt(this);
+//            ingredientsReceipts.getId().setReceiptId(this.id);
+//        });
+        this.name = receipt.name;
+        this.owner = null;
+        this.price = receipt.price;
+        this.proteins = receipt.proteins;
+        this.rating = receipt.rating;
+        this.steps = new ArrayList<>(receipt.steps);
+        //this.steps.stream().peek(receiptStep -> receiptStep.setId(UUID.randomUUID()));
+        //this.steps.forEach(receiptStep -> receiptStep.setId(UUID.randomUUID()));
+        this.tags = new HashSet<>(receipt.tags);
     }
 }
