@@ -8,10 +8,12 @@ import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserReview;
+import com.ncedu.nc_edu.models.UserRole;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpStatus;
@@ -23,9 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -93,6 +93,14 @@ public class UserController {
     @GetMapping(value = "/users/@me")
     public RepresentationModel<UserResource> getAuthenticatedUser(Authentication auth) {
         return userAssembler.toModel(((CustomUserDetails) auth.getPrincipal()).getUser());
+    }
+
+    @GetMapping(value = "/users/@me/roles")
+    public Set<String> getRoles(Authentication auth) {
+        Set<String> response = new HashSet<>();
+        ((CustomUserDetails) auth.getPrincipal()).getUser().getRoles().stream()
+                .forEach(role -> response.add(role.getRole()));
+        return response;
     }
 
     @GetMapping(value = "/users/{id}/reviews")

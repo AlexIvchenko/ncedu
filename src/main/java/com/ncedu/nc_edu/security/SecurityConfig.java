@@ -12,11 +12,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
@@ -40,7 +42,7 @@ public class SecurityConfig {
                     .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
                     .antMatchers(HttpMethod.PUT, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
                     .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
-
+                    .antMatchers(HttpMethod.GET, "/receipts/**").permitAll()
                     .antMatchers("/").permitAll()
                     .antMatchers("/register").permitAll()
                     .anyRequest().authenticated()

@@ -28,7 +28,6 @@ public class SecurityUtils {
     }
 
     public Authentication getAuthentication() {
-        Authentication aht = SecurityContextHolder.getContext().getAuthentication();
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
