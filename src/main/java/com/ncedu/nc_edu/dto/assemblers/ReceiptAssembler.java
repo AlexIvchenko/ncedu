@@ -50,7 +50,7 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
                 .map(Tag::getName).collect(Collectors.toSet())
         );
 
-        resource.setIngredients(entity.getIngredientsReceiptsDTOs().stream()
+        resource.setIngredients(entity.getIngredientsReceipts().stream()
                 .map(ingredientReceipt -> {
                     JSONObject json = new JSONObject();
                     json.put("id", ingredientReceipt.getIngredient().getId());

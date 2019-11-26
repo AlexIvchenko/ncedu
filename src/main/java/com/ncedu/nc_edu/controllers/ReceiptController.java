@@ -97,13 +97,13 @@ public class ReceiptController {
     public ReceiptResource create(Authentication auth, @RequestBody @Valid ReceiptWithStepsResource receipt) {
         User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
 
-        receipt.getReceiptSteps().forEach(step -> {
+        receipt.getSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
             }
         });
 
-        log.debug(receipt.getReceiptResource().toString());
+        log.debug(receipt.getInfo().toString());
 
         ReceiptResource resource = this.receiptAssembler.toModel(this.receiptService.create(receipt, user));
 
@@ -120,13 +120,13 @@ public class ReceiptController {
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
 
-        receipt.getReceiptSteps().forEach(step -> {
+        receipt.getSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
             }
         });
 
-        receipt.getReceiptResource().setId(id);
+        receipt.getInfo().setId(id);
 
         ReceiptResource updatedResource = this.receiptAssembler.toModel(this.receiptService.update(receipt));
 

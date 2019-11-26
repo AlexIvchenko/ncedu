@@ -256,7 +256,7 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
             Subquery<Receipt> sq = query.subquery(Receipt.class);
             Root<Receipt> receipt = sq.from(Receipt.class);
             SetJoin<Receipt, IngredientsReceipts> ingredientsReceipts
-                    = receipt.joinSet("ingredientsReceiptsDTOs", JoinType.INNER);
+                    = receipt.joinSet("ingredientsReceipts", JoinType.INNER);
             Join<IngredientsReceipts, Ingredient> ingredientsJoin
                     = ingredientsReceipts.join("ingredient", JoinType.INNER);
 
@@ -275,7 +275,7 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
             Subquery<Receipt> sq = query.subquery(Receipt.class);
             Root<Receipt> receipt = sq.from(Receipt.class);
             SetJoin<Receipt, IngredientsReceipts> ingredientsReceipts
-                    = receipt.joinSet("ingredientsReceiptsDTOs", JoinType.INNER);
+                    = receipt.joinSet("ingredientsReceipts", JoinType.INNER);
             Join<IngredientsReceipts, Ingredient> ingredientsJoin
                     = ingredientsReceipts.join("ingredient", JoinType.INNER);
 

@@ -26,15 +26,15 @@ public class ReceiptResource extends RepresentationModel<ReceiptResource> {
     private Integer calories;
 
     @PositiveOrZero(message = "Proteins must be positive")
-    @Size(max = 1000)
+    @Size(max = 100)
     private Float proteins;
 
     @PositiveOrZero(message = "Fats must be positive")
-    @Size(max = 1000)
+    @Size(max = 100)
     private Float fats;
 
     @PositiveOrZero(message = "Carbohydrates must be positive")
-    @Size(max = 1000)
+    @Size(max = 100)
     private Float carbohydrates;
 
     private Float rating;

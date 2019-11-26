@@ -12,6 +12,7 @@ import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.ReceiptService;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,8 +63,8 @@ public class ReceiptServiceImpl implements ReceiptService {
 
     @Override
     public Receipt update(ReceiptWithStepsResource dto) {
-        ReceiptResource resource = dto.getReceiptResource();
-        List<ReceiptStepResource> resourceSteps = dto.getReceiptSteps();
+        ReceiptResource resource = dto.getInfo();
+        List<ReceiptStepResource> resourceSteps = dto.getSteps();
         Receipt oldReceipt = this.receiptRepository.findById(resource.getId())
                 .orElseThrow(() -> new EntityDoesNotExistsException("Receipt"));
 
@@ -146,8 +147,8 @@ public class ReceiptServiceImpl implements ReceiptService {
 
     @Override
     public Receipt create(ReceiptWithStepsResource dto, User owner) {
-        ReceiptResource resource = dto.getReceiptResource();
-        List<ReceiptStepResource> steps = dto.getReceiptSteps();
+        ReceiptResource resource = dto.getInfo();
+        List<ReceiptStepResource> steps = dto.getSteps();
 
         Receipt receipt = new Receipt();
 
@@ -183,7 +184,46 @@ public class ReceiptServiceImpl implements ReceiptService {
             return step;
         }).collect(Collectors.toList()));
 
-        log.debug(receipt.toString());
+        List<JSONObject> json = dto.getInfo().getIngredients();
+        Set<IngredientsReceipts> ingredients = new HashSet<>();
+
+        for (JSONObject j : json) {
+            if (j.containsKey("id")) {
+                UUID id;
+                String valueType;
+                Float value;
+
+                try {
+                    id = UUID.fromString((String) j.get("id"));
+                    value = Float.parseFloat(j.getAsString("value"));
+                    valueType = (String) j.get("valueType");
+                } catch (NumberFormatException ex) {
+                    throw new RequestParseException("Invalid ingredient value format");
+                } catch (IllegalArgumentException ex) {
+                    throw new RequestParseException("Invalid ingredient id");
+                } catch (ClassCastException ex) {
+                    throw new RequestParseException("Invalid ingredients format");
+                }
+
+                if (valueType == null) {
+                    throw new RequestParseException("Invalid ingredients format");
+                }
+
+                Ingredient ingredient = ingredientService.findById(id);
+
+                IngredientsReceipts ingredientsReceipts = new IngredientsReceipts();
+                ingredientsReceipts.setIngredient(ingredient);
+                ingredientsReceipts.setReceipt(receipt);
+                ingredientsReceipts.setValue(value);
+                ingredientsReceipts.setValueType(valueType);
+
+                ingredients.add(ingredientsReceipts);
+            } else {
+                throw new RequestParseException("Invalid ingredients format");
+            }
+        }
+
+        receipt.setIngredientsReceipts(ingredients);
 
         return this.receiptRepository.save(receipt);
     }
