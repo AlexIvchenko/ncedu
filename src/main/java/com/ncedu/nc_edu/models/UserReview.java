@@ -24,7 +24,7 @@ public class UserReview {
 
     private Date created_on;
 
-    private Integer rating;
+    private Float rating;
 
     private String review;
 

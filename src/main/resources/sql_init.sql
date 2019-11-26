@@ -93,7 +93,7 @@ create table if not exists ration_categories
         constraint ration_categories_pk
             primary key,
     name varchar(255),
-    owner varchar(36)
+    owner_id varchar(36)
         constraint ration_categories_users_id_fk
             references users
             on delete cascade
@@ -105,15 +105,15 @@ create table if not exists ration_items
         constraint ration_items_pk
             primary key,
     date date,
-    category varchar(36)
+    category_id varchar(36)
         constraint ration_items_ration_categories_id_fk
             references ration_categories
             on delete cascade,
-    owner varchar(36)
+    owner_id varchar(36)
         constraint ration_items_users_id_fk
             references users
             on delete cascade,
-    receipt varchar(36)
+    receipt_id varchar(36)
         constraint ration_items_receipts_id_fk
             references receipts
             on delete cascade
@@ -160,16 +160,16 @@ create table if not exists receipt_reviews
     id varchar(36) not null
         constraint receipt_reviews_pk
             primary key,
-    "user" varchar(36)
+    user_id varchar(36)
         constraint receipt_reviews_users_id_fk
             references users
             on delete set null,
-    receipt varchar(36)
+    receipt_id varchar(36)
         constraint receipt_reviews_receipts_id_fk
             references receipts
             on delete cascade,
     created_on date,
-    rating integer,
+    rating real,
     review varchar(1024)
 );
 
