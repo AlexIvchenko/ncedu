@@ -1,6 +1,5 @@
 package com.ncedu.nc_edu.security;
 
-import com.ncedu.nc_edu.models.UserRole.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,18 +7,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity(debug = true)
@@ -35,8 +27,8 @@ public class SecurityConfig {
                     .antMatchers("/users/{userId}/info").access("@securityUtils.isSelfOrGranted(#userId)")
                     .antMatchers("/users/{userId}/reviews").access("@securityUtils.isSelfOrGranted(#userId)")
                     .antMatchers(HttpMethod.PUT, "/users/{userId}").access("@securityUtils.isSelfOrGranted(#userId)")
-                    .antMatchers(HttpMethod.PUT, "/receipts/{receiptId}/**").access("@securityUtils.isReceiptsOwnerOrGranted(#receiptId)")
-                    .antMatchers(HttpMethod.DELETE, "/receipts/{receiptId}/**").access("@securityUtils.isReceiptsOwnerOrGranted(#receiptId)")
+                    .antMatchers(HttpMethod.PUT, "/recipes/{recipeId}/**").access("@securityUtils.isRecipesOwnerOrGranted(#recipeId)")
+                    .antMatchers(HttpMethod.DELETE, "/recipes/{recipeId}/**").access("@securityUtils.isRecipesOwnerOrGranted(#recipeId)")
                     .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
                     .antMatchers(HttpMethod.PUT, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
                     .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")

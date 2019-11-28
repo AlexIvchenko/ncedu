@@ -1,9 +1,10 @@
 package com.ncedu.nc_edu.dto.resources;
 
 import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
-import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.models.Recipe;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minidev.json.JSONObject;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.*;
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ReceiptResource extends RepresentationModel<ReceiptResource> {
+public class RecipeResource extends RepresentationModel<RecipeResource> {
     private UUID id;
 
     @NotBlank(message = "Name cannot be empty")
@@ -25,15 +26,15 @@ public class ReceiptResource extends RepresentationModel<ReceiptResource> {
     private Integer calories;
 
     @PositiveOrZero(message = "Proteins must be positive")
-    @Size(max = 1000)
+    @Size(max = 100)
     private Float proteins;
 
     @PositiveOrZero(message = "Fats must be positive")
-    @Size(max = 1000)
+    @Size(max = 100)
     private Float fats;
 
     @PositiveOrZero(message = "Carbohydrates must be positive")
-    @Size(max = 1000)
+    @Size(max = 100)
     private Float carbohydrates;
 
     private Float rating;
@@ -47,18 +48,18 @@ public class ReceiptResource extends RepresentationModel<ReceiptResource> {
     private Integer price;
 
     @NotNull
-    @ValueOfEnum(value = Receipt.CookingMethod.class, message = "Cooking method must be any of " +
+    @ValueOfEnum(value = Recipe.CookingMethod.class, message = "Cooking method must be any of " +
             "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE")
     private String cookingMethod;
 
     @NotNull
-    @ValueOfEnum(value = Receipt.Cuisine.class, message = "Cuisine must be any of " +
+    @ValueOfEnum(value = Recipe.Cuisine.class, message = "Cuisine must be any of " +
             "RUSSIAN|ITALIAN|JAPANESE")
     private String cuisine;
 
     private Set<String> tags;
 
-    //private List<ReceiptStepResource> steps;
+    private List<JSONObject> ingredients;
 
     /**
      * Field only for returning. Should be never updated.
