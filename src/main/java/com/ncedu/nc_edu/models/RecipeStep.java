@@ -12,8 +12,8 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "receipt_steps", schema = "public")
-public class ReceiptStep {
+@Table(name = "recipe_steps", schema = "public")
+public class RecipeStep {
     @Id
     @Type(type = "uuid-char")
     private UUID id;
@@ -21,7 +21,7 @@ public class ReceiptStep {
     private String description;
 
     @ManyToOne
-    private Receipt receipt;
+    private Recipe recipe;
 
     @Type(type = "uuid-char")
     private UUID picture;
@@ -30,7 +30,7 @@ public class ReceiptStep {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReceiptStep that = (ReceiptStep) o;
+        RecipeStep that = (RecipeStep) o;
         return id.equals(that.id);
     }
 
@@ -41,7 +41,7 @@ public class ReceiptStep {
 
     @Override
     public String toString() {
-        return "ReceiptStep{" +
+        return "RecipeStep{" +
                 "id=" + id +
                 ", description='" + description + '\'' +
                 ", picture=" + picture +

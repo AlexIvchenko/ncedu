@@ -28,7 +28,7 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
         userResource.setId(entity.getId());
         userResource.setUsername(entity.getUsername());
         userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
-        userResource.add(linkTo(methodOn(controllerClass).getReceipts(userResource.getId())).withRel("receipts").withType("GET"));
+        userResource.add(linkTo(methodOn(controllerClass).getRecipes(userResource.getId())).withRel("recipes").withType("GET"));
 
         if (securityUtils.isSelfOrGranted(entity.getId())) {
             userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));

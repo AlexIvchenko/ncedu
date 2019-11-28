@@ -1,9 +1,9 @@
 package com.ncedu.nc_edu.dto.assemblers;
 
-import com.ncedu.nc_edu.controllers.ReceiptController;
+import com.ncedu.nc_edu.controllers.RecipeController;
 import com.ncedu.nc_edu.controllers.UserController;
-import com.ncedu.nc_edu.dto.resources.ReceiptResource;
-import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.dto.resources.RecipeResource;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.security.SecurityUtils;
 import net.minidev.json.JSONObject;
@@ -18,21 +18,21 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receipt, ReceiptResource> {
+public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe, RecipeResource> {
     private final SecurityUtils securityUtils;
     private final IngredientAssembler ingredientAssembler;
 
-    public ReceiptAssembler(@Autowired SecurityUtils securityUtils,
+    public RecipeAssembler(@Autowired SecurityUtils securityUtils,
                             @Autowired IngredientAssembler ingredientAssembler) {
-        super(Receipt.class, ReceiptResource.class);
+        super(Recipe.class, RecipeResource.class);
         this.securityUtils = securityUtils;
         this.ingredientAssembler = ingredientAssembler;
     }
 
     @Override
-    public ReceiptResource toModel(Receipt entity) {
+    public RecipeResource toModel(Recipe entity) {
         Authentication auth = securityUtils.getAuthentication();
-        ReceiptResource resource = new ReceiptResource();
+        RecipeResource resource = new RecipeResource();
 
         resource.setId(entity.getId());
         resource.setName(entity.getName());
@@ -50,27 +50,27 @@ public class ReceiptAssembler extends RepresentationModelAssemblerSupport<Receip
                 .map(Tag::getName).collect(Collectors.toSet())
         );
 
-        resource.setIngredients(entity.getIngredientsReceipts().stream()
-                .map(ingredientReceipt -> {
+        resource.setIngredients(entity.getIngredientsRecipes().stream()
+                .map(ingredientRecipe -> {
                     JSONObject json = new JSONObject();
-                    json.put("id", ingredientReceipt.getIngredient().getId());
-                    json.put("name", ingredientReceipt.getIngredient().getName());
-                    json.put("valueType", ingredientReceipt.getValueType());
-                    json.put("value", ingredientReceipt.getValue());
+                    json.put("id", ingredientRecipe.getIngredient().getId());
+                    json.put("name", ingredientRecipe.getIngredient().getName());
+                    json.put("valueType", ingredientRecipe.getValueType());
+                    json.put("value", ingredientRecipe.getValue());
                     return json;
                 }).collect(Collectors.toList())
         );
 
-        resource.add(linkTo(methodOn(ReceiptController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
-        resource.add(linkTo(methodOn(ReceiptController.class).getReceiptSteps(entity.getId())).withRel("steps").withType("GET"));
+        resource.add(linkTo(methodOn(RecipeController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
+        resource.add(linkTo(methodOn(RecipeController.class).getRecipeSteps(entity.getId())).withRel("steps").withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));
 
-        if (securityUtils.isReceiptsOwnerOrGranted(entity.getId())) {
-            resource.add(linkTo(methodOn(ReceiptController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
-            resource.add(linkTo(methodOn(ReceiptController.class).remove(auth, entity.getId())).withRel("remove").withType("DELETE"));
+        if (securityUtils.isRecipesOwnerOrGranted(entity.getId())) {
+            resource.add(linkTo(methodOn(RecipeController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
+            resource.add(linkTo(methodOn(RecipeController.class).remove(auth, entity.getId())).withRel("remove").withType("DELETE"));
         }
 
-        resource.add(linkTo(methodOn(ReceiptController.class).create(auth, null)).withRel("create"));
+        resource.add(linkTo(methodOn(RecipeController.class).create(auth, null)).withRel("create"));
 
         return resource;
     }

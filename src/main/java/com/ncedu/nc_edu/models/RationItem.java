@@ -28,7 +28,7 @@ public class RationItem {
     private User owner;
 
     @ManyToOne
-    private Receipt receipt;
+    private Recipe recipe;
 
     @Override
     public boolean equals(Object o) {

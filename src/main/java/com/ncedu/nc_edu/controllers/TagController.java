@@ -2,7 +2,7 @@ package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.TagAssembler;
 import com.ncedu.nc_edu.dto.resources.TagResource;
-import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
@@ -68,8 +68,8 @@ public class TagController {
         return resource;
     }
 
-    @GetMapping("/tags/{id}/receipts")
-    public PagedModel<Receipt> getAllByTag(@PathVariable UUID id, Authentication auth) {
+    @GetMapping("/tags/{id}/recipes")
+    public PagedModel<Recipe> getAllByTag(@PathVariable UUID id, Authentication auth) {
         return null;
     }
 }

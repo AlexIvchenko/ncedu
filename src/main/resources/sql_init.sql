@@ -49,10 +49,10 @@ create table if not exists ingredients
     name varchar(30)
 );
 
-create table if not exists receipts
+create table if not exists recipes
 (
     id varchar(36) not null
-        constraint table_name_pk
+        constraint recipes_pk
             primary key,
     name varchar(255) not null,
     calories integer,
@@ -61,7 +61,7 @@ create table if not exists receipts
     carbohydrates real,
     rating real,
     owner_id varchar(36)
-        constraint receipts_users_id_fk
+        constraint recipes_users_id_fk
             references users
             on delete set null,
     cooking_method varchar(64),
@@ -70,19 +70,32 @@ create table if not exists receipts
     cuisine varchar(64)
 );
 
-create unique index if not exists receipts_id_uindex
-    on receipts (id);
+create unique index if not exists recipes_id_uindex
+    on recipes (id);
 
-create table if not exists receipt_steps
+create unique index if not exists table_name_id_uindex
+    on recipes (id);
+
+create table if not exists tags
+(
+    name varchar(255) not null
+        constraint tags_pk
+            primary key
+);
+
+create unique index if not exists tags_name_uindex
+    on tags (name);
+
+create table if not exists recipe_steps
 (
     id varchar(36) not null
-        constraint receipt_steps_pk
+        constraint recipe_steps_pk
             primary key,
     description varchar(2048),
     picture varchar(36),
-    receipt_id varchar(36)
-        constraint receipt_steps_receipts_id_fk
-            references receipts
+    recipe_id varchar(36)
+        constraint recipe_steps_recipe_id_fk
+            references recipes (id)
             on delete cascade,
     index integer
 );
@@ -113,60 +126,50 @@ create table if not exists ration_items
         constraint ration_items_users_id_fk
             references users
             on delete cascade,
-    receipt_id varchar(36)
-        constraint ration_items_receipts_id_fk
-            references receipts
+    recipe_id varchar(36)
+        constraint ration_items_recipes_id_fk
+            references recipes (id)
             on delete cascade
 );
 
-create table if not exists tags
-(
-    name varchar(255) not null
-        constraint tags_pk
-            primary key
-);
-
-create unique index if not exists tags_name_uindex
-    on tags (name);
-
-create table if not exists tags_receipts
+create table if not exists tags_recipes
 (
     tag_name varchar(36)
-        constraint tags_receipts_tags_name_fk
+        constraint tags_recipes_tags_name_fk
             references tags
             on delete cascade,
-    receipt_id varchar(36)
-        constraint tags_receipts_receipts_id_fk
-            references receipts
+    recipe_id varchar(36)
+        constraint tags_recipes_recipes_id_fk
+            references recipes
             on delete cascade
 );
 
-create table if not exists ingredients_receipts
+create table if not exists ingredients_recipes
 (
     ingredient_id varchar(36)
-        constraint ingredients_receipts_ingredients_id_fk
+        constraint ingredients_recipes_ingredients_id_fk
             references ingredients
             on delete cascade,
-    receipt_id varchar(36)
-        constraint ingredients_receipts_receipts_id_fk
-            references receipts
+    recipe_id varchar(36)
+        constraint ingredients_recipes_recipes_id_fk
+            references recipes
             on delete cascade,
     value_type varchar(16),
     value real
 );
 
-create table if not exists receipt_reviews
+create table if not exists recipe_reviews
 (
     id varchar(36) not null
-        constraint receipt_reviews_pk
+        constraint recipe_reviews_pk
             primary key,
     user_id varchar(36)
-        constraint receipt_reviews_users_id_fk
+        constraint recipe_reviews_users_id_fk
             references users
             on delete set null,
-    receipt_id varchar(36)
-        constraint receipt_reviews_receipts_id_fk
-            references receipts
+    recipe_id varchar(36)
+        constraint recipe_reviews_recipe_id_fk
+            references recipes (id)
             on delete cascade,
     created_on date,
     rating real,

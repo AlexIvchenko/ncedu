@@ -1,9 +1,9 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
+import com.ncedu.nc_edu.dto.resources.RecipeSearchCriteria;
 import com.ncedu.nc_edu.models.Ingredient;
-import com.ncedu.nc_edu.models.IngredientsReceipts;
-import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.models.IngredientsRecipes;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.Tag;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -11,13 +11,13 @@ import javax.persistence.criteria.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ReceiptSearchSpecification implements Specification<Receipt> {
-    private ReceiptSearchCriteria criteria;
+public class RecipeSearchSpecification implements Specification<Recipe> {
+    private RecipeSearchCriteria criteria;
     private Set<Tag> includeTags, excludeTags;
     private Set<Ingredient> includeIngredients, excludeIngredients;
 
-    public ReceiptSearchSpecification(
-            ReceiptSearchCriteria criteria,
+    public RecipeSearchSpecification(
+            RecipeSearchCriteria criteria,
             Set<Tag> includeTags,
             Set<Tag> excludeTags,
             Set<Ingredient> includeIngredients,
@@ -31,13 +31,14 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
     }
 
     @Override
-    public Predicate toPredicate(Root<Receipt> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+    public Predicate toPredicate(Root<Recipe> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         query.distinct(true);
+        query.orderBy(criteriaBuilder.asc(root.get("id")));
         return criteriaBuilder.and(fill(root, query, criteriaBuilder).toPredicate(root, query, criteriaBuilder));
 }
 
-    private Specification<Receipt> fill(Root<Receipt> r, CriteriaQuery<?> q, CriteriaBuilder cb) {
-        Specification<Receipt> spec = (root, query, criteriaBuilder) -> null;
+    private Specification<Recipe> fill(Root<Recipe> r, CriteriaQuery<?> q, CriteriaBuilder cb) {
+        Specification<Recipe> spec = (root, query, criteriaBuilder) -> null;
 
         if (criteria.getName() != null) {
             spec = spec.and(containsName(criteria.getName()));
@@ -86,7 +87,7 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
         if (criteria.getCookingMethods() != null) {
             if (criteria.getCookingMethods().size() != 0) {
                 spec = spec.and(inCookingMethods(
-                        criteria.getCookingMethods().stream().map(Receipt.CookingMethod::valueOf).collect(Collectors.toSet()))
+                        criteria.getCookingMethods().stream().map(Recipe.CookingMethod::valueOf).collect(Collectors.toSet()))
                 );
             }
         }
@@ -110,7 +111,7 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
         if (criteria.getCuisines() != null) {
             if (criteria.getCuisines().size() != 0) {
                 spec = spec.and(inCuisines(criteria.getCuisines()
-                        .stream().map(Receipt.Cuisine::valueOf).collect(Collectors.toSet()))
+                        .stream().map(Recipe.Cuisine::valueOf).collect(Collectors.toSet()))
                 );
             }
         }
@@ -131,158 +132,160 @@ public class ReceiptSearchSpecification implements Specification<Receipt> {
             spec = spec.and(notContainIngredients(this.excludeIngredients));
         }
 
+
+
         return spec;
     }
 
-    private Specification<Receipt> caloriesGreaterThanOrEqualTo(Integer value) {
+    private Specification<Recipe> caloriesGreaterThanOrEqualTo(Integer value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("calories"), value);
     }
 
-    private Specification<Receipt> caloriesLessThanOrEqualTo(Integer value) {
+    private Specification<Recipe> caloriesLessThanOrEqualTo(Integer value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("calories"), value);
     }
 
-    private Specification<Receipt> fatsLessThanOrEqualTo(Float value) {
+    private Specification<Recipe> fatsLessThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("fats"), value);
     }
 
-    private Specification<Receipt> fatsGreaterThanOrEqualTo(Float value) {
+    private Specification<Recipe> fatsGreaterThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("fats"), value);
     }
 
-    private Specification<Receipt> carbohydratesLessThanOrEqualTo(Float value) {
+    private Specification<Recipe> carbohydratesLessThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("carbohydrates"), value);
     }
 
-    private Specification<Receipt> carbohydratesGreaterThanOrEqualTo(Float value) {
+    private Specification<Recipe> carbohydratesGreaterThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("carbohydrates"), value);
     }
 
-    private Specification<Receipt> proteinsLessThanOrEqualTo(Float value) {
+    private Specification<Recipe> proteinsLessThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("proteins"), value);
     }
 
-    private Specification<Receipt> proteinsGreaterThanOrEqualTo(Float value) {
+    private Specification<Recipe> proteinsGreaterThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("proteins"), value);
     }
 
-    private Specification<Receipt> ratingGreaterThanOrEqualTo(Float value) {
+    private Specification<Recipe> ratingGreaterThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("rating"), value);
     }
 
-    private Specification<Receipt> ratingLessThanOrEqualTo(Float value) {
+    private Specification<Recipe> ratingLessThanOrEqualTo(Float value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("rating"), value);
     }
 
-    private Specification<Receipt> containsName(String value) {
+    private Specification<Recipe> containsName(String value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.like(root.get("name"), value);
     }
 
-    private Specification<Receipt> inCookingMethods(Set<Receipt.CookingMethod> methods) {
+    private Specification<Recipe> inCookingMethods(Set<Recipe.CookingMethod> methods) {
         return (root, query, criteriaBuilder) ->
                 root.get("cookingMethod").in(methods);
     }
 
-    private Specification<Receipt> cookingTimeGreaterThanOrEqualTo(Integer value) {
+    private Specification<Recipe> cookingTimeGreaterThanOrEqualTo(Integer value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("cookingTime"), value);
     }
 
-    private Specification<Receipt> cookingTimeLessThanOrEqualTo(Integer value) {
+    private Specification<Recipe> cookingTimeLessThanOrEqualTo(Integer value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("cookingTime"), value);
     }
 
-    private Specification<Receipt> priceGreaterThanOrEqualTo(Integer value) {
+    private Specification<Recipe> priceGreaterThanOrEqualTo(Integer value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("price"), value);
     }
 
-    private Specification<Receipt> priceLessThanOrEqualTo(Integer value) {
+    private Specification<Recipe> priceLessThanOrEqualTo(Integer value) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("price"), value);
     }
 
-    private Specification<Receipt> inCuisines(Set<Receipt.Cuisine> cuisines) {
+    private Specification<Recipe> inCuisines(Set<Recipe.Cuisine> cuisines) {
         return (root, query, criteriaBuilder) ->
                 root.get("cuisine").in(cuisines);
     }
 
-    private Specification<Receipt> containTags(Set<Tag> tags) {
+    private Specification<Recipe> containTags(Set<Tag> tags) {
         return (root, query, criteriaBuilder) -> {
-            Subquery<Receipt> sq = query.subquery(Receipt.class);
-            Root<Receipt> receipt = sq.from(Receipt.class);
-            SetJoin<Receipt, Tag> receiptTagSetJoin = receipt.joinSet("tags", JoinType.INNER);
+            Subquery<Recipe> sq = query.subquery(Recipe.class);
+            Root<Recipe> recipe = sq.from(Recipe.class);
+            SetJoin<Recipe, Tag> recipeTagSetJoin = recipe.joinSet("tags", JoinType.INNER);
 
             return root.in(
-                        sq.select(receipt).groupBy(receipt.get("id"))
+                        sq.select(recipe).groupBy(recipe.get("id"))
                         .having(criteriaBuilder.equal(
-                                    criteriaBuilder.count(receipt), tags.size()
+                                    criteriaBuilder.count(recipe), tags.size()
                                 )
-                        ).where(receiptTagSetJoin.in(tags))
+                        ).where(recipeTagSetJoin.in(tags))
                     );
         };
     }
 
-    private Specification<Receipt> notContainTags(Set<Tag> tags) {
+    private Specification<Recipe> notContainTags(Set<Tag> tags) {
         return (root, query, criteriaBuilder) -> {
-            Subquery<Receipt> sq = query.subquery(Receipt.class);
-            Root<Receipt> receipt = sq.from(Receipt.class);
-            SetJoin<Receipt, Tag> receiptTagSetJoin = receipt.joinSet("tags", JoinType.INNER);
+            Subquery<Recipe> sq = query.subquery(Recipe.class);
+            Root<Recipe> recipe = sq.from(Recipe.class);
+            SetJoin<Recipe, Tag> recipeTagSetJoin = recipe.joinSet("tags", JoinType.INNER);
 
             return criteriaBuilder.not(root.in(
-                    sq.select(receipt).groupBy(receipt.get("id"))
+                    sq.select(recipe).groupBy(recipe.get("id"))
                             .having(criteriaBuilder.equal(
-                                    criteriaBuilder.count(receipt), tags.size()
+                                    criteriaBuilder.count(recipe), tags.size()
                                     )
-                            ).where(receiptTagSetJoin.in(tags))
+                            ).where(recipeTagSetJoin.in(tags))
             ));
         };
     }
 
-    private Specification<Receipt> containIngredients(Set<Ingredient> ingredients) {
+    private Specification<Recipe> containIngredients(Set<Ingredient> ingredients) {
         return (root, query, criteriaBuilder) -> {
-            Subquery<Receipt> sq = query.subquery(Receipt.class);
-            Root<Receipt> receipt = sq.from(Receipt.class);
-            SetJoin<Receipt, IngredientsReceipts> ingredientsReceipts
-                    = receipt.joinSet("ingredientsReceipts", JoinType.INNER);
-            Join<IngredientsReceipts, Ingredient> ingredientsJoin
-                    = ingredientsReceipts.join("ingredient", JoinType.INNER);
+            Subquery<Recipe> sq = query.subquery(Recipe.class);
+            Root<Recipe> recipe = sq.from(Recipe.class);
+            SetJoin<Recipe, IngredientsRecipes> ingredientsRecipes
+                    = recipe.joinSet("ingredientsRecipes", JoinType.INNER);
+            Join<IngredientsRecipes, Ingredient> ingredientsJoin
+                    = ingredientsRecipes.join("ingredient", JoinType.INNER);
 
             return root.in(
-                    sq.select(receipt).groupBy(receipt.get("id"))
+                    sq.select(recipe).groupBy(recipe.get("id"))
                             .having(criteriaBuilder.equal(
-                                    criteriaBuilder.count(receipt), ingredients.size()
+                                    criteriaBuilder.count(recipe), ingredients.size()
                                     )
                             ).where(ingredientsJoin.in(ingredients))
             );
         };
     }
 
-    private Specification<Receipt> notContainIngredients(Set<Ingredient> ingredients) {
+    private Specification<Recipe> notContainIngredients(Set<Ingredient> ingredients) {
         return (root, query, criteriaBuilder) -> {
-            Subquery<Receipt> sq = query.subquery(Receipt.class);
-            Root<Receipt> receipt = sq.from(Receipt.class);
-            SetJoin<Receipt, IngredientsReceipts> ingredientsReceipts
-                    = receipt.joinSet("ingredientsReceipts", JoinType.INNER);
-            Join<IngredientsReceipts, Ingredient> ingredientsJoin
-                    = ingredientsReceipts.join("ingredient", JoinType.INNER);
+            Subquery<Recipe> sq = query.subquery(Recipe.class);
+            Root<Recipe> recipe = sq.from(Recipe.class);
+            SetJoin<Recipe, IngredientsRecipes> ingredientsRecipes
+                    = recipe.joinSet("ingredientsRecipes", JoinType.INNER);
+            Join<IngredientsRecipes, Ingredient> ingredientsJoin
+                    = ingredientsRecipes.join("ingredient", JoinType.INNER);
 
             return criteriaBuilder.not(root.in(
-                    sq.select(receipt).groupBy(receipt.get("id"))
+                    sq.select(recipe).groupBy(recipe.get("id"))
                             .having(criteriaBuilder.equal(
-                                    criteriaBuilder.count(receipt), ingredients.size()
+                                    criteriaBuilder.count(recipe), ingredients.size()
                                     )
                             ).where(ingredientsJoin.in(ingredients))
             ));

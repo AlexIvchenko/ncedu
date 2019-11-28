@@ -1,15 +1,15 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.resources.ReceiptResource;
-import com.ncedu.nc_edu.dto.resources.ReceiptSearchCriteria;
-import com.ncedu.nc_edu.dto.resources.ReceiptStepResource;
-import com.ncedu.nc_edu.dto.resources.ReceiptWithStepsResource;
+import com.ncedu.nc_edu.dto.resources.RecipeResource;
+import com.ncedu.nc_edu.dto.resources.RecipeSearchCriteria;
+import com.ncedu.nc_edu.dto.resources.RecipeStepResource;
+import com.ncedu.nc_edu.dto.resources.RecipeWithStepsResource;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
-import com.ncedu.nc_edu.repositories.ReceiptRepository;
+import com.ncedu.nc_edu.repositories.RecipeRepository;
 import com.ncedu.nc_edu.services.IngredientService;
-import com.ncedu.nc_edu.services.ReceiptService;
+import com.ncedu.nc_edu.services.RecipeService;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
@@ -25,99 +25,99 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
-public class ReceiptServiceImpl implements ReceiptService {
-    private final ReceiptRepository receiptRepository;
+public class RecipeServiceImpl implements RecipeService {
+    private final RecipeRepository recipeRepository;
     private final TagService tagService;
     private final IngredientService ingredientService;
 
-    public ReceiptServiceImpl(
-            @Autowired ReceiptRepository receiptRepository,
+    public RecipeServiceImpl(
+            @Autowired RecipeRepository recipeRepository,
             @Autowired TagService tagService,
             @Autowired IngredientService ingredientService) {
-        this.receiptRepository = receiptRepository;
+        this.recipeRepository = recipeRepository;
         this.tagService = tagService;
         this.ingredientService = ingredientService;
     }
 
-    public Page<Receipt> findAll(Pageable pageable) {
-        return this.receiptRepository.findAll(pageable);
+    public Page<Recipe> findAll(Pageable pageable) {
+        return this.recipeRepository.findAll(pageable);
     }
 
-    public Receipt findById(UUID id) {
-        return this.receiptRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Receipt"));
+    public Recipe findById(UUID id) {
+        return this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
     }
 
-    public List<Receipt> findByName(String name) {
-        return this.receiptRepository.findByNameContaining(name);
+    public List<Recipe> findByName(String name) {
+        return this.recipeRepository.findByNameContaining(name);
     }
 
     @Override
-    public List<Receipt> findAllOwn(User user) {
-        return this.receiptRepository.findByOwner(user);
+    public List<Recipe> findAllOwn(User user) {
+        return this.recipeRepository.findByOwner(user);
     }
 
     @Override
     public void removeById(UUID id) {
-        this.receiptRepository.deleteById(id);
+        this.recipeRepository.deleteById(id);
     }
 
     @Override
-    public Receipt update(ReceiptWithStepsResource dto) {
-        ReceiptResource resource = dto.getInfo();
-        List<ReceiptStepResource> resourceSteps = dto.getSteps();
-        Receipt oldReceipt = this.receiptRepository.findById(resource.getId())
-                .orElseThrow(() -> new EntityDoesNotExistsException("Receipt"));
+    public Recipe update(RecipeWithStepsResource dto) {
+        RecipeResource resource = dto.getInfo();
+        List<RecipeStepResource> resourceSteps = dto.getSteps();
+        Recipe oldRecipe = this.recipeRepository.findById(resource.getId())
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         if (resource.getName() != null) {
-            oldReceipt.setName(resource.getName());
+            oldRecipe.setName(resource.getName());
         }
 
         if (resource.getCalories() != null) {
-            oldReceipt.setCalories(resource.getCalories() == 0 ? null : resource.getCalories());
+            oldRecipe.setCalories(resource.getCalories() == 0 ? null : resource.getCalories());
         }
 
         if (resource.getFats() != null) {
-            oldReceipt.setFats(resource.getFats() == 0 ? null : resource.getFats());
+            oldRecipe.setFats(resource.getFats() == 0 ? null : resource.getFats());
         }
 
         if (resource.getProteins() != null) {
-            oldReceipt.setProteins(resource.getProteins() == 0 ? null : resource.getProteins());
+            oldRecipe.setProteins(resource.getProteins() == 0 ? null : resource.getProteins());
         }
 
         if (resource.getCarbohydrates() != null) {
-            oldReceipt.setCarbohydrates(resource.getCarbohydrates() == 0 ? null : resource.getCarbohydrates());
+            oldRecipe.setCarbohydrates(resource.getCarbohydrates() == 0 ? null : resource.getCarbohydrates());
         }
 
         if (resource.getCookingMethod() != null) {
-            oldReceipt.setCookingMethod(Receipt.CookingMethod.valueOf(resource.getCookingMethod()));
+            oldRecipe.setCookingMethod(Recipe.CookingMethod.valueOf(resource.getCookingMethod()));
         }
 
         if (resource.getCookingTime() != null) {
-            oldReceipt.setCookingTime(resource.getCookingTime());
+            oldRecipe.setCookingTime(resource.getCookingTime());
         }
 
         if (resource.getPrice() != null) {
-            oldReceipt.setPrice(resource.getPrice());
+            oldRecipe.setPrice(resource.getPrice());
         }
 
         if (resource.getCuisine() != null) {
-            oldReceipt.setCuisine(Receipt.Cuisine.valueOf(resource.getCuisine()));
+            oldRecipe.setCuisine(Recipe.Cuisine.valueOf(resource.getCuisine()));
         }
 
         if (resource.getTags() != null) {
-            oldReceipt.setTags(resource.getTags().stream()
+            oldRecipe.setTags(resource.getTags().stream()
                     .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
         if (resourceSteps != null) {
-            List<ReceiptStep> steps = oldReceipt.getSteps();
-            Map<UUID, ReceiptStep> stepMap = new LinkedHashMap<>();
-            for (ReceiptStep step : steps) {
+            List<RecipeStep> steps = oldRecipe.getSteps();
+            Map<UUID, RecipeStep> stepMap = new LinkedHashMap<>();
+            for (RecipeStep step : steps) {
                 stepMap.put(step.getId(), step);
             }
 
-            oldReceipt.setSteps(resourceSteps.stream().map(stepResource -> {
-                ReceiptStep step;
+            oldRecipe.setSteps(resourceSteps.stream().map(stepResource -> {
+                RecipeStep step;
                 if (stepResource.getId() != null) {
                     if (stepMap.containsKey(stepResource.getId())) {
                         step = stepMap.get(stepResource.getId());
@@ -125,9 +125,9 @@ public class ReceiptServiceImpl implements ReceiptService {
                         throw new RequestParseException("Invalid step ID");
                     }
                 } else {
-                    step = new ReceiptStep();
+                    step = new RecipeStep();
                     step.setId(UUID.randomUUID());
-                    step.setReceipt(oldReceipt);
+                    step.setRecipe(oldRecipe);
                 }
 
                 if (stepResource.getDescription() != null) {
@@ -142,50 +142,50 @@ public class ReceiptServiceImpl implements ReceiptService {
             }).collect(Collectors.toList()));
         }
 
-        return this.receiptRepository.save(oldReceipt);
+        return this.recipeRepository.save(oldRecipe);
     }
 
     @Override
-    public Receipt create(ReceiptWithStepsResource dto, User owner) {
-        ReceiptResource resource = dto.getInfo();
-        List<ReceiptStepResource> steps = dto.getSteps();
+    public Recipe create(RecipeWithStepsResource dto, User owner) {
+        RecipeResource resource = dto.getInfo();
+        List<RecipeStepResource> steps = dto.getSteps();
 
-        Receipt receipt = new Receipt();
+        Recipe recipe = new Recipe();
 
-        receipt.setId(UUID.randomUUID());
+        recipe.setId(UUID.randomUUID());
 
-        receipt.setName(resource.getName());
-        receipt.setCarbohydrates(resource.getCarbohydrates());
-        receipt.setProteins(resource.getProteins());
-        receipt.setCalories(resource.getCalories());
-        receipt.setFats(resource.getFats());
-        receipt.setRating(0f);
-        receipt.setOwner(owner);
-        receipt.setCuisine(Receipt.Cuisine.valueOf(resource.getCuisine()));
-        receipt.setCookingMethod(Receipt.CookingMethod.valueOf(resource.getCookingMethod()));
-        receipt.setCookingTime(resource.getCookingTime());
-        receipt.setPrice(resource.getPrice());
+        recipe.setName(resource.getName());
+        recipe.setCarbohydrates(resource.getCarbohydrates());
+        recipe.setProteins(resource.getProteins());
+        recipe.setCalories(resource.getCalories());
+        recipe.setFats(resource.getFats());
+        recipe.setRating(0f);
+        recipe.setOwner(owner);
+        recipe.setCuisine(Recipe.Cuisine.valueOf(resource.getCuisine()));
+        recipe.setCookingMethod(Recipe.CookingMethod.valueOf(resource.getCookingMethod()));
+        recipe.setCookingTime(resource.getCookingTime());
+        recipe.setPrice(resource.getPrice());
 
         if (resource.getTags() != null) {
-            receipt.setTags(resource.getTags().stream()
+            recipe.setTags(resource.getTags().stream()
                     .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
         if (steps == null) {
-            throw new RequestParseException("Receipt must contain at least 1 step");
+            throw new RequestParseException("Recipe must contain at least 1 step");
         }
 
-        receipt.setSteps(steps.stream().map(receiptStepResource -> {
-            ReceiptStep step = new ReceiptStep();
+        recipe.setSteps(steps.stream().map(recipeStepResource -> {
+            RecipeStep step = new RecipeStep();
             step.setId(UUID.randomUUID());
-            step.setDescription(receiptStepResource.getDescription());
-            step.setPicture(receiptStepResource.getPicture());
-            step.setReceipt(receipt);
+            step.setDescription(recipeStepResource.getDescription());
+            step.setPicture(recipeStepResource.getPicture());
+            step.setRecipe(recipe);
             return step;
         }).collect(Collectors.toList()));
 
         List<JSONObject> json = dto.getInfo().getIngredients();
-        Set<IngredientsReceipts> ingredients = new HashSet<>();
+        Set<IngredientsRecipes> ingredients = new HashSet<>();
 
         for (JSONObject j : json) {
             if (j.containsKey("id")) {
@@ -211,33 +211,33 @@ public class ReceiptServiceImpl implements ReceiptService {
 
                 Ingredient ingredient = ingredientService.findById(id);
 
-                IngredientsReceipts ingredientsReceipts = new IngredientsReceipts();
-                ingredientsReceipts.setIngredient(ingredient);
-                ingredientsReceipts.setReceipt(receipt);
-                ingredientsReceipts.setValue(value);
-                ingredientsReceipts.setValueType(valueType);
+                IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
+                ingredientsRecipes.setIngredient(ingredient);
+                ingredientsRecipes.setRecipe(recipe);
+                ingredientsRecipes.setValue(value);
+                ingredientsRecipes.setValueType(valueType);
 
-                ingredients.add(ingredientsReceipts);
+                ingredients.add(ingredientsRecipes);
             } else {
                 throw new RequestParseException("Invalid ingredients format");
             }
         }
 
-        receipt.setIngredientsReceipts(ingredients);
+        recipe.setIngredientsRecipes(ingredients);
 
-        return this.receiptRepository.save(receipt);
+        return this.recipeRepository.save(recipe);
     }
 
     @Override
-    public Page<Receipt> search(
-            ReceiptSearchCriteria receiptSearchCriteria,
+    public Page<Recipe> search(
+            RecipeSearchCriteria recipeSearchCriteria,
             Pageable pageable
     ) {
         Set<Tag> includeTags = new HashSet<>();
         Set<Tag> excludeTags = new HashSet<>();
 
-        if (receiptSearchCriteria.getIncludeTags() != null) {
-            includeTags.addAll(receiptSearchCriteria.getIncludeTags().stream().map(s -> {
+        if (recipeSearchCriteria.getIncludeTags() != null) {
+            includeTags.addAll(recipeSearchCriteria.getIncludeTags().stream().map(s -> {
                 if (tagService.existsByName(s)) {
                     return tagService.findByName(s);
                 } else {
@@ -246,8 +246,8 @@ public class ReceiptServiceImpl implements ReceiptService {
             }).filter(Objects::nonNull).collect(Collectors.toSet()));
         }
 
-        if (receiptSearchCriteria.getExcludeTags() != null) {
-            excludeTags.addAll(receiptSearchCriteria.getExcludeTags().stream().map(s -> {
+        if (recipeSearchCriteria.getExcludeTags() != null) {
+            excludeTags.addAll(recipeSearchCriteria.getExcludeTags().stream().map(s -> {
                 if (tagService.existsByName(s)) {
                     return tagService.findByName(s);
                 } else {
@@ -259,8 +259,8 @@ public class ReceiptServiceImpl implements ReceiptService {
         Set<Ingredient> includeIngredients = new HashSet<>();
         Set<Ingredient> excludeIngredients = new HashSet<>();
 
-        if (receiptSearchCriteria.getIncludeIngredients() != null) {
-            includeIngredients.addAll(receiptSearchCriteria.getIncludeIngredients().stream().map(ingredient -> {
+        if (recipeSearchCriteria.getIncludeIngredients() != null) {
+            includeIngredients.addAll(recipeSearchCriteria.getIncludeIngredients().stream().map(ingredient -> {
                 if (ingredientService.existsById(ingredient)) {
                     return ingredientService.findById(ingredient);
                 } else {
@@ -269,8 +269,8 @@ public class ReceiptServiceImpl implements ReceiptService {
             }).filter(Objects::nonNull).collect(Collectors.toSet()));
         }
 
-        if (receiptSearchCriteria.getExcludeIngredients() != null) {
-            excludeIngredients.addAll(receiptSearchCriteria.getExcludeIngredients().stream().map(ingredient -> {
+        if (recipeSearchCriteria.getExcludeIngredients() != null) {
+            excludeIngredients.addAll(recipeSearchCriteria.getExcludeIngredients().stream().map(ingredient -> {
                 if (ingredientService.existsById(ingredient)) {
                     return ingredientService.findById(ingredient);
                 } else {
@@ -279,9 +279,9 @@ public class ReceiptServiceImpl implements ReceiptService {
             }).filter(Objects::nonNull).collect(Collectors.toSet()));
         }
 
-        return this.receiptRepository.findAll(
-                new ReceiptSearchSpecification(
-                        receiptSearchCriteria,
+        return this.recipeRepository.findAll(
+                new RecipeSearchSpecification(
+                        recipeSearchCriteria,
                         includeTags,
                         excludeTags,
                         includeIngredients,

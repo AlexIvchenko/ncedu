@@ -1,41 +1,49 @@
 package com.ncedu.nc_edu.models;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "ingredients_receipts", schema = "public")
+@Table(name = "ingredients_recipes", schema = "public")
 @Data
-public class IngredientsReceipts {
+@NoArgsConstructor
+public class IngredientsRecipes {
     @EmbeddedId
-    private IngredientsReceiptsId id;
+    private IngredientsRecipesId id = new IngredientsRecipesId();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("ingredientId")
     private Ingredient ingredient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("receiptId")
-    private Receipt receipt;
+    @MapsId("recipeId")
+    private Recipe recipe;
 
     @Column(name = "value_type")
     private String valueType;
 
     private Float value;
 
+    public IngredientsRecipes(Recipe recipe, Ingredient ingredient) {
+        this.recipe = recipe;
+        this.ingredient = ingredient;
+        this.id = new IngredientsRecipesId(recipe.getId(), ingredient.getId());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        IngredientsReceipts that = (IngredientsReceipts) o;
+        IngredientsRecipes that = (IngredientsRecipes) o;
         return ingredient.equals(that.ingredient) &&
-                receipt.equals(that.receipt);
+                recipe.equals(that.recipe);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ingredient, receipt);
+        return Objects.hash(ingredient, recipe);
     }
 }
