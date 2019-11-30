@@ -1,9 +1,9 @@
 package com.ncedu.nc_edu.controllers;
 
-import com.ncedu.nc_edu.dto.assemblers.ReceiptAssembler;
+import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
 import com.ncedu.nc_edu.dto.assemblers.UserInfoAssembler;
-import com.ncedu.nc_edu.dto.resources.ReceiptResource;
+import com.ncedu.nc_edu.dto.resources.RecipeResource;
 import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
@@ -17,7 +17,6 @@ import org.springframework.data.util.Pair;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -35,16 +34,16 @@ public class UserController {
     private final UserService userService;
     private final UserAssembler userAssembler;
     private final UserInfoAssembler userInfoAssembler;
-    private final ReceiptAssembler receiptAssembler;
+    private final RecipeAssembler recipeAssembler;
 
     public UserController(@Autowired UserService userService,
                           @Autowired UserAssembler userAssembler,
                           @Autowired UserInfoAssembler userInfoAssembler,
-                          @Autowired ReceiptAssembler receiptAssembler) {
+                          @Autowired RecipeAssembler recipeAssembler) {
         this.userService = userService;
         this.userAssembler = userAssembler;
         this.userInfoAssembler = userInfoAssembler;
-        this.receiptAssembler = receiptAssembler;
+        this.recipeAssembler = recipeAssembler;
     }
 
     @PostMapping(value = "/register")
@@ -81,11 +80,11 @@ public class UserController {
         return userInfoAssembler.toModel(user);
     }
 
-    @GetMapping(value = "/users/{id}/receipts")
-    public CollectionModel<List<ReceiptResource>> getReceipts(@PathVariable UUID id) {
-        CollectionModel<List<ReceiptResource>> resource = new CollectionModel<List<ReceiptResource>>(
-                Collections.singleton(userService.getReceiptsById(id).stream()
-                        .map(receiptAssembler::toModel)
+    @GetMapping(value = "/users/{id}/recipes")
+    public CollectionModel<List<RecipeResource>> getRecipes(@PathVariable UUID id) {
+        CollectionModel<List<RecipeResource>> resource = new CollectionModel<List<RecipeResource>>(
+                Collections.singleton(userService.getRecipesById(id).stream()
+                        .map(recipeAssembler::toModel)
                         .collect(Collectors.toList())));
         return resource;
     }

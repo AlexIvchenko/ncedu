@@ -36,6 +36,11 @@ public class IngredientServiceImpl implements IngredientService {
         return ingredientRepository.save(oldIngredient);
     }
 
+    @Override
+    public boolean existsById(UUID id) {
+        return this.ingredientRepository.existsById(id);
+    }
+
     public List<Ingredient> findByName(String pattern) {
         return ingredientRepository.findByNameContainsIgnoreCase(pattern);
     }
