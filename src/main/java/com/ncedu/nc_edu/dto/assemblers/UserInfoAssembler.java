@@ -3,8 +3,6 @@ package com.ncedu.nc_edu.dto.assemblers;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.UserInfoResource;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.security.SecurityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.stereotype.Component;
 
