@@ -45,7 +45,7 @@ public class SecurityJsonViewControllerAdvice extends AbstractMappingJacksonResp
         if (bodyContainer.getValue() instanceof RepresentationModel
                 && bodyContainer.getSerializationView() == null
                 && securityAccessResolver.getUser() != null) {
-            Class contentClass = null;
+
             bodyContainer.setSerializationView(View.getView(securityAccessResolver.getHeadAuthority()));
             if (bodyContainer.getValue() instanceof CollectionModel) {
                 //Collection model = ((CollectionModel) bodyContainer.getValue()).getContent();
@@ -53,9 +53,7 @@ public class SecurityJsonViewControllerAdvice extends AbstractMappingJacksonResp
                     return;
                 //}
             }
-            contentClass = bodyContainer.getValue().getClass();
-
-            if (Arrays.asList(contentClass.getInterfaces()).contains(OwnableResource.class)
+            if (Arrays.asList(bodyContainer.getValue().getClass().getInterfaces()).contains(OwnableResource.class)
                     && ((OwnableResource)bodyContainer.getValue()).getOwnerId().equals(securityAccessResolver.getUser().getId())) {
                 bodyContainer.setSerializationView(View.Owner.class);
             }

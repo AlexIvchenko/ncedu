@@ -1,5 +1,7 @@
 package com.ncedu.nc_edu.dto.assemblers;
 
+import com.ncedu.nc_edu.controllers.AdminController;
+import com.ncedu.nc_edu.controllers.ModeratorController;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
@@ -39,8 +41,13 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
 
         if (securityAccessResolver.isSelf(entity.getId())) {
             userResource.add(linkTo(methodOn(controllerClass).update(entity.getId(), null)).withRel("update").withType("PUT"));
+            if (securityAccessResolver.isModerator()) {
+                userResource.add(linkTo(methodOn(ModeratorController.class).moderatorRoot()).withRel("moderator").withType("GET"));
+            }
+            if (securityAccessResolver.isAdmin()) {
+                userResource.add(linkTo(methodOn(AdminController.class).adminRoot()).withRel("admin").withType("GET"));
+            }
         }
-
         return userResource;
     }
 

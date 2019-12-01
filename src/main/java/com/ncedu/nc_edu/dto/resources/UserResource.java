@@ -2,11 +2,9 @@ package com.ncedu.nc_edu.dto.resources;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.security.View;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
