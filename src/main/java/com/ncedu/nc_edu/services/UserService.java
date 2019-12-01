@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services;
 
-import com.ncedu.nc_edu.dto.resources.UserInfoResource;
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.Recipe;
@@ -31,5 +31,5 @@ public interface UserService {
      * @return User model
      * @throws EntityDoesNotExistsException throws if user with given id cannot be found
      */
-    User update(UserInfoResource userInfo) throws EntityDoesNotExistsException, AlreadyExistsException;
+    User update(UserResource userInfo) throws EntityDoesNotExistsException, AlreadyExistsException;
 }

@@ -11,13 +11,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-@Component
 public interface SecurityAccessResolver {
     public Authentication getAuthentication();
 
     public User getUser();
 
     public Set<GrantedAuthority> getAuthorities();
+
+    public boolean isSelf(UUID id);
 
     public boolean isModerator();
 
@@ -28,4 +29,6 @@ public interface SecurityAccessResolver {
     public boolean isSelfOrGranted(UUID id);
 
     public boolean isRecipeOwnerOrGranted(UUID recipeId);
+
+    public GrantedAuthority getHeadAuthority();
 }

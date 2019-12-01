@@ -1,6 +1,7 @@
 package com.ncedu.nc_edu.security;
 
 import com.ncedu.nc_edu.models.UserRole.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,11 +19,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.nio.file.AccessDeniedException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.UUID;
-
 @Configuration
 @EnableWebSecurity(debug = true)
 public class SecurityConfig {
@@ -33,16 +29,16 @@ public class SecurityConfig {
             http
                     .csrf().disable()
                     .authorizeRequests()
-                    .antMatchers("/users").access("@securityAccessResolver.isAdminOrModerator()")
-                    .antMatchers("/users/{userId}/info").access("@securityAccessResolver.isSelfOrGranted(#userId)")
-                    .antMatchers("/users/{userId}/reviews").access("@securityAccessResolver.isSelfOrGranted(#userId)")
-                    .antMatchers(HttpMethod.PUT, "/users/{userId}").access("@securityAccessResolver.isSelfOrGranted(#userId)")
-                    .antMatchers(HttpMethod.PUT, "/recipes/{recipeId}/**").access("@securityAccessResolver.isRecipeOwnerOrGranted(#receiptId)")
-                    .antMatchers(HttpMethod.DELETE, "/recipes/{recipeId}/**").access("@securityAccessResolver.isRecipeOwnerOrGranted(#receiptId)")
-                    .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityAccessResolver.isAdminOrModerator()")
-                    .antMatchers(HttpMethod.PUT, "/ingredients/**").access("@securityAccessResolver.isAdminOrModerator()")
-                    .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityAccessResolver.isAdminOrModerator()")
-                    .antMatchers(HttpMethod.GET, "/receipts/**").permitAll()
+                    .antMatchers("/users").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers("/users/{userId}/info").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers("/users/{userId}/reviews").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers(HttpMethod.PUT, "/users/{userId}").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers(HttpMethod.PUT, "/recipes/{recipeId}/**").access("@securityAccessResolverImpl.isRecipeOwnerOrGranted(#receiptId)")
+                    .antMatchers(HttpMethod.DELETE, "/recipes/{recipeId}/**").access("@securityAccessResolverImpl.isRecipeOwnerOrGranted(#receiptId)")
+                    .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers(HttpMethod.PUT, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers(HttpMethod.GET, "/recipes/**").permitAll()
                     .antMatchers("/").permitAll()
                     .antMatchers("/register").permitAll()
                     .anyRequest().authenticated()

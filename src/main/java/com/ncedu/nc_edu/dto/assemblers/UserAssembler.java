@@ -5,6 +5,7 @@ import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.stereotype.Component;
 
@@ -27,14 +28,24 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
         UserResource userResource = new UserResource();
         userResource.setId(entity.getId());
         userResource.setUsername(entity.getUsername());
+        userResource.setEmail(entity.getEmail());
+        userResource.setBirthday(entity.getBirthday());
+        userResource.setGender(entity.getGender().toString());
+        userResource.setHeight(entity.getHeight());
+        userResource.setWeight(entity.getWeight());
         userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
         userResource.add(linkTo(methodOn(controllerClass).getRecipes(userResource.getId())).withRel("recipes").withType("GET"));
+        userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
 
-        if (securityAccessResolver.isSelfOrGranted(entity.getId())) {
-            userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
-            userResource.add(linkTo(methodOn(controllerClass).getInfo(userResource.getId())).withRel("info").withType("GET"));
+        if (securityAccessResolver.isSelf(entity.getId())) {
+            userResource.add(linkTo(methodOn(controllerClass).update(entity.getId(), null)).withRel("update").withType("PUT"));
         }
 
         return userResource;
+    }
+
+    @Override
+    public CollectionModel<UserResource> toCollectionModel(Iterable<? extends User> entities) {
+        return super.toCollectionModel(entities);
     }
 }

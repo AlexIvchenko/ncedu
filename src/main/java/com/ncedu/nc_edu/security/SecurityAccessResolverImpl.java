@@ -4,10 +4,12 @@ import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole.UserRoles;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +37,11 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver{
     @Override
     public Set<GrantedAuthority> getAuthorities() {
         return new HashSet<>(getAuthentication().getAuthorities());
+    }
+
+    @Override
+    public boolean isSelf(UUID id) {
+        return getUser().getId().equals(id);
     }
 
     @Override
@@ -66,5 +73,17 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver{
         return isAdminOrModerator()
                 || user != null && recipeRepository.findById(recipeId)
                 .get().getOwner().getId().equals(user.getId());
+    }
+
+    @Override
+    public GrantedAuthority getHeadAuthority() {
+        Set<GrantedAuthority> authorities = new HashSet<>(getAuthorities());
+        if (authorities.contains(UserRoles.ADMIN.getAuthority()))
+            return UserRoles.ADMIN.getAuthority();
+        if (authorities.contains(UserRoles.MODERATOR.getAuthority()))
+            return UserRoles.MODERATOR.getAuthority();
+        if (authorities.contains(UserRoles.USER.getAuthority()))
+            return UserRoles.USER.getAuthority();
+        return UserRoles.ANONYMOUS.getAuthority();
     }
 }
