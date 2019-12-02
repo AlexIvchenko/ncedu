@@ -5,7 +5,7 @@ import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.RecipeResource;
 import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.Tag;
-import com.ncedu.nc_edu.security.SecurityUtils;
+import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
@@ -19,19 +19,19 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
 public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe, RecipeResource> {
-    private final SecurityUtils securityUtils;
+    private final SecurityAccessResolver securityAccessResolver;
     private final IngredientAssembler ingredientAssembler;
 
-    public RecipeAssembler(@Autowired SecurityUtils securityUtils,
+    public RecipeAssembler(@Autowired SecurityAccessResolver securityAccessResolver,
                             @Autowired IngredientAssembler ingredientAssembler) {
         super(Recipe.class, RecipeResource.class);
-        this.securityUtils = securityUtils;
+        this.securityAccessResolver = securityAccessResolver;
         this.ingredientAssembler = ingredientAssembler;
     }
 
     @Override
     public RecipeResource toModel(Recipe entity) {
-        Authentication auth = securityUtils.getAuthentication();
+        Authentication auth = securityAccessResolver.getAuthentication();
         RecipeResource resource = new RecipeResource();
 
         resource.setId(entity.getId());
@@ -65,7 +65,7 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.add(linkTo(methodOn(RecipeController.class).getRecipeSteps(entity.getId())).withRel("steps").withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));
 
-        if (securityUtils.isRecipesOwnerOrGranted(entity.getId())) {
+        if (securityAccessResolver.isRecipeOwnerOrGranted(entity.getId())) {
             resource.add(linkTo(methodOn(RecipeController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
             resource.add(linkTo(methodOn(RecipeController.class).remove(auth, entity.getId())).withRel("remove").withType("DELETE"));
         }

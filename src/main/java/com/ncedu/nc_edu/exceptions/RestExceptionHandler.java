@@ -125,18 +125,4 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
     }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
-        JSONObject json = new JSONObject();
-
-        json.put("error", HttpStatus.FORBIDDEN.value());
-        json.put("message", ex.getMessage());
-
-        return new ResponseEntity<>(
-                json,
-                new HttpHeaders(),
-                HttpStatus.FORBIDDEN
-        );
-    }
 }

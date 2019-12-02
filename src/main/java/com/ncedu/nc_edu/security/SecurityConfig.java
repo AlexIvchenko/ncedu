@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -18,35 +20,52 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
     @Configuration
     public static class ApiSecurityAdapter extends WebSecurityConfigurerAdapter {
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+            return new AccessDeniedHandlerImpl();
+        }
+
+        @Bean
+        public AuthenticationEntryPoint authenticationEntryPoint() {
+            return new AuthenticationEntryPointImpl();
+        }
+
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new SCryptPasswordEncoder();
+        }
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
                     .csrf().disable()
                     .authorizeRequests()
-                    .antMatchers("/users").access("@securityUtils.isAdminOrModerator()")
-                    .antMatchers("/users/{userId}/info").access("@securityUtils.isSelfOrGranted(#userId)")
-                    .antMatchers("/users/{userId}/reviews").access("@securityUtils.isSelfOrGranted(#userId)")
-                    .antMatchers(HttpMethod.PUT, "/users/{userId}").access("@securityUtils.isSelfOrGranted(#userId)")
-                    .antMatchers(HttpMethod.PUT, "/recipes/{recipeId}/**").access("@securityUtils.isRecipesOwnerOrGranted(#recipeId)")
-                    .antMatchers(HttpMethod.DELETE, "/recipes/{recipeId}/**").access("@securityUtils.isRecipesOwnerOrGranted(#recipeId)")
-                    .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
-                    .antMatchers(HttpMethod.PUT, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
-                    .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityUtils.isAdminOrModerator()")
-
+                    .antMatchers("/admin/**").access("@securityAccessResolverImpl.isAdmin()")
+                    .antMatchers("/moderator/**").access("@securityAccessResolverImpl.isModerator()")
+                    .antMatchers("/users").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers("/users/{userId}/info").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers("/users/{userId}/reviews").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers(HttpMethod.PUT, "/users/{userId}").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers(HttpMethod.PUT, "/recipes/{recipeId}/**").access("@securityAccessResolverImpl.isRecipeOwnerOrGranted(#receiptId)")
+                    .antMatchers(HttpMethod.DELETE, "/recipes/{recipeId}/**").access("@securityAccessResolverImpl.isRecipeOwnerOrGranted(#receiptId)")
+                    .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers(HttpMethod.PUT, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
+                    .antMatchers(HttpMethod.GET, "/recipes/**").permitAll()
                     .antMatchers("/").permitAll()
                     .antMatchers("/register").permitAll()
                     .anyRequest().authenticated()
-                    .and()
+            .and()
                     .httpBasic()
-                    .and()
+            .and()
+                    .exceptionHandling()
+                        .accessDeniedHandler(accessDeniedHandler())
+                        .authenticationEntryPoint(authenticationEntryPoint())
+            .and()
                     .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and().cors();
+            .and()
+                    .cors();
         }
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new SCryptPasswordEncoder();
     }
 
     @Bean
@@ -60,4 +79,6 @@ public class SecurityConfig {
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
         return new CorsFilter(urlBasedCorsConfigurationSource);
     }
+
+
 }

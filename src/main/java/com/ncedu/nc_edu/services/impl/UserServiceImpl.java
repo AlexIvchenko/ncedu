@@ -1,6 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.resources.UserInfoResource;
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.*;
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc }
      */
     @Override
-    public User update(UserInfoResource userInfo)
+    public User update(UserResource userInfo)
             throws EntityDoesNotExistsException, AlreadyExistsException
     {
         User oldUser = userRepository.findById(userInfo.getId()).orElseThrow(() -> new EntityDoesNotExistsException("User"));
