@@ -4,10 +4,7 @@ import lombok.Data;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "recipes", schema = "public")
@@ -35,11 +32,11 @@ public class Recipe {
     @Enumerated(EnumType.STRING)
     private Cuisine cuisine;
 
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "index")
     private List<RecipeStep> steps;
 
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<IngredientsRecipes> ingredientsRecipes;
 
     @ManyToMany
@@ -94,5 +91,16 @@ public class Recipe {
         RUSSIAN,
         ITALIAN,
         JAPANESE;
+    }
+
+    public void setSteps(List<RecipeStep> steps) {
+        if (this.steps == null) {
+            this.steps = new ArrayList<>();
+        }
+
+        this.steps.clear();
+        if (steps != null) {
+            this.steps.addAll(steps);
+        }
     }
 }

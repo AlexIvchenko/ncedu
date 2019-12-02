@@ -1,9 +1,6 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.resources.RecipeResource;
-import com.ncedu.nc_edu.dto.resources.RecipeSearchCriteria;
-import com.ncedu.nc_edu.dto.resources.RecipeStepResource;
-import com.ncedu.nc_edu.dto.resources.RecipeWithStepsResource;
+import com.ncedu.nc_edu.dto.resources.*;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
@@ -12,7 +9,6 @@ import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
 import com.ncedu.nc_edu.services.TagService;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -109,6 +105,26 @@ public class RecipeServiceImpl implements RecipeService {
                     .map(tagService::findByName).collect(Collectors.toSet()));
         }
 
+        if (resource.getIngredients() != null) {
+            List<RecipeIngredientResource> recipeIngredientResources = resource.getIngredients();
+            Set<IngredientsRecipes> ingredients = new HashSet<>();
+
+            for (RecipeIngredientResource res : recipeIngredientResources) {
+                Ingredient ingredient = ingredientService.findById(res.getId());
+
+                IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
+                ingredientsRecipes.setIngredient(ingredient);
+                ingredientsRecipes.setRecipe(oldRecipe);
+                ingredientsRecipes.setValue(res.getValue());
+                ingredientsRecipes.setValueType(res.getValueType());
+
+                ingredients.add(ingredientsRecipes);
+            }
+
+            oldRecipe.getIngredientsRecipes().retainAll(ingredients);
+            oldRecipe.getIngredientsRecipes().addAll(ingredients);
+        }
+
         if (resourceSteps != null) {
             List<RecipeStep> steps = oldRecipe.getSteps();
             Map<UUID, RecipeStep> stepMap = new LinkedHashMap<>();
@@ -184,43 +200,20 @@ public class RecipeServiceImpl implements RecipeService {
             return step;
         }).collect(Collectors.toList()));
 
-        List<JSONObject> json = dto.getInfo().getIngredients();
+        List<RecipeIngredientResource> recipeIngredientResources = resource.getIngredients();
         Set<IngredientsRecipes> ingredients = new HashSet<>();
 
-        for (JSONObject j : json) {
-            if (j.containsKey("id")) {
-                UUID id;
-                String valueType;
-                Float value;
+        for (RecipeIngredientResource res : recipeIngredientResources) {
+            Ingredient ingredient = ingredientService.findById(res.getId());
 
-                try {
-                    id = UUID.fromString((String) j.get("id"));
-                    value = Float.parseFloat(j.getAsString("value"));
-                    valueType = (String) j.get("valueType");
-                } catch (NumberFormatException ex) {
-                    throw new RequestParseException("Invalid ingredient value format");
-                } catch (IllegalArgumentException ex) {
-                    throw new RequestParseException("Invalid ingredient id");
-                } catch (ClassCastException ex) {
-                    throw new RequestParseException("Invalid ingredients format");
-                }
+            IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
+            ingredientsRecipes.setIngredient(ingredient);
+            ingredientsRecipes.setRecipe(recipe);
+            ingredientsRecipes.setValue(res.getValue());
+            ingredientsRecipes.setValueType(res.getValueType());
 
-                if (valueType == null) {
-                    throw new RequestParseException("Invalid ingredients format");
-                }
+            ingredients.add(ingredientsRecipes);
 
-                Ingredient ingredient = ingredientService.findById(id);
-
-                IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
-                ingredientsRecipes.setIngredient(ingredient);
-                ingredientsRecipes.setRecipe(recipe);
-                ingredientsRecipes.setValue(value);
-                ingredientsRecipes.setValueType(valueType);
-
-                ingredients.add(ingredientsRecipes);
-            } else {
-                throw new RequestParseException("Invalid ingredients format");
-            }
         }
 
         recipe.setIngredientsRecipes(ingredients);

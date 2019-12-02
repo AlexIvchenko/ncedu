@@ -132,8 +132,6 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
             spec = spec.and(notContainIngredients(this.excludeIngredients));
         }
 
-
-
         return spec;
     }
 

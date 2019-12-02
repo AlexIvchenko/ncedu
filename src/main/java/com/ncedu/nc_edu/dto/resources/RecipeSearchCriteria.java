@@ -65,4 +65,28 @@ public class RecipeSearchCriteria {
             @ValueOfEnum(value = Recipe.Cuisine.class, message = "Cuisine must be any of " +
                     "RUSSIAN|ITALIAN|JAPANESE") String
             > cuisines;
+
+    public boolean hasAnyCriteria() {
+        return caloriesMax != null ||
+                caloriesMin != null ||
+                fatsMin != null ||
+                fatsMax != null ||
+                carbohydratesMin != null ||
+                carbohydratesMax != null ||
+                proteinsMin != null ||
+                proteinsMax != null ||
+                ratingMin != null ||
+                ratingMax != null ||
+                name != null ||
+                cookingMethods != null ||
+                cookingTimeMin != null ||
+                cookingTimeMax != null ||
+                priceMin != null ||
+                priceMax != null ||
+                includeTags != null ||
+                excludeTags != null ||
+                includeIngredients != null ||
+                excludeIngredients != null ||
+                cuisines != null;
+    }
 }
