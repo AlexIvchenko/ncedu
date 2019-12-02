@@ -1,6 +1,7 @@
 package com.ncedu.nc_edu;
 
 import com.ncedu.nc_edu.dto.resources.UserResource;
+import com.ncedu.nc_edu.dto.resources.UserResource;
 import org.junit.jupiter.api.Test;
 
 import javax.validation.Validation;

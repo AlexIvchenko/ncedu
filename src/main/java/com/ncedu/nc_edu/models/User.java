@@ -53,10 +53,10 @@ public class User {
     private Set<UserRole> roles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<UsersFilters> usersFilters;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<UserReview> reviews;
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    private List<Recipe> recipes;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     @OrderColumn(name = "index")

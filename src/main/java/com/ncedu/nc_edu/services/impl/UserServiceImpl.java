@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -90,58 +89,57 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc }
      */
     @Override
-    public User update(UserResource userResource)
+    public User update(UserResource userInfo)
             throws EntityDoesNotExistsException, AlreadyExistsException
     {
-        User oldUser = userRepository.findById(userResource.getId()).orElseThrow(() -> new EntityDoesNotExistsException("User"));
+        User oldUser = userRepository.findById(userInfo.getId()).orElseThrow(() -> new EntityDoesNotExistsException("User"));
 
-        if (userResource.getEmail() != null) {
-            if (userRepository.findByEmail(userResource.getEmail()).isPresent())
+        if (userInfo.getEmail() != null) {
+            if (userRepository.findByEmail(userInfo.getEmail()).isPresent())
                 throw new AlreadyExistsException("User", "email");
-            oldUser.setEmail(userResource.getEmail());
+            oldUser.setEmail(userInfo.getEmail());
         }
 
-        if (userResource.getUsername() != null) {
-            oldUser.setUsername(userResource.getUsername());
+        if (userInfo.getUsername() != null) {
+            oldUser.setUsername(userInfo.getUsername());
         }
 
-        if (userResource.getGender() != null) {
-            oldUser.setGender(User.Gender.valueOf(userResource.getGender()));
+        if (userInfo.getGender() != null) {
+            oldUser.setGender(User.Gender.valueOf(userInfo.getGender()));
         }
 
-        if (userResource.getBirthday() != null) {
-            oldUser.setBirthday(userResource.getBirthday());
+        if (userInfo.getBirthday() != null) {
+            oldUser.setBirthday(userInfo.getBirthday());
         }
 
-        if (userResource.getHeight() != null) {
-            if (userResource.getHeight() == 0) {
+        if (userInfo.getHeight() != null) {
+            if (userInfo.getHeight() == 0) {
                 oldUser.setHeight(null);
             } else {
-                oldUser.setHeight(userResource.getHeight());
+                oldUser.setHeight(userInfo.getHeight());
             }
         }
 
-        if (userResource.getWeight() != null) {
-            if (userResource.getWeight() == 0) {
+        if (userInfo.getWeight() != null) {
+            if (userInfo.getWeight() == 0) {
                 oldUser.setWeight(null);
             } else {
-                oldUser.setWeight(userResource.getWeight());
+                oldUser.setWeight(userInfo.getWeight());
             }
         }
 
-        if (userResource.getPassword() != null) {
-            oldUser.setPassword(passwordEncoder.encode(userResource.getPassword()));
+        if (userInfo.getPassword() != null) {
+            oldUser.setPassword(passwordEncoder.encode(userInfo.getPassword()));
         }
 
         return userRepository.save(oldUser);
     }
 
     @Override
-    public List<Filter> getUserFiltersById(UUID id) {
+    public List<Recipe> getRecipesById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("User with id " + id))
-                .getUsersFilters().stream()
-                .map(UsersFilters::getFilter).collect(Collectors.toList());
+                .getRecipes();
     }
 
     @Override

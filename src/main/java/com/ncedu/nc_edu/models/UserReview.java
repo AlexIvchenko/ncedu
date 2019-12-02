@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "receipt_reviews", schema = "public")
+@Table(name = "recipe_reviews", schema = "public")
 public class UserReview {
     @Id
     @Type(type = "uuid-char")
@@ -20,11 +20,11 @@ public class UserReview {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private Receipt receipt;
+    private Recipe recipe;
 
     private Date created_on;
 
-    private Integer rating;
+    private Float rating;
 
     private String review;
 

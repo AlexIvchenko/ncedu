@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ReceiptStepResource extends RepresentationModel<ReceiptStepResource> {
+public class RecipeStepResource extends RepresentationModel<RecipeStepResource> {
     private UUID id;
 
     private String description;

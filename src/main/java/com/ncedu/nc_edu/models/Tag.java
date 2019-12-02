@@ -15,11 +15,11 @@ public class Tag {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinTable(
-            name = "tags_receipts",
+            name = "tags_recipes",
             joinColumns = @JoinColumn(name = "tag_name"),
-            inverseJoinColumns = @JoinColumn(name = "receipt_id")
+            inverseJoinColumns = @JoinColumn(name = "recipe_id")
     )
-    private Set<Receipt> receipts;
+    private Set<Recipe> recipes;
 
     @Override
     public boolean equals(Object o) {
