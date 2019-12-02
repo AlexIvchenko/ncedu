@@ -4,7 +4,6 @@ import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
 import com.ncedu.nc_edu.models.Recipe;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import net.minidev.json.JSONObject;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.*;
@@ -59,7 +58,7 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
 
     private Set<String> tags;
 
-    private List<JSONObject> ingredients;
+    private List<RecipeIngredientResource> ingredients;
 
     /**
      * Field only for returning. Should be never updated.
