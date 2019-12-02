@@ -1,11 +1,11 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.models.RationItem;
-import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.RationItemService;
-import com.ncedu.nc_edu.services.ReceiptService;
+import com.ncedu.nc_edu.services.RecipeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,21 +21,21 @@ import java.util.UUID;
 public class RationItemController {
 
     private final RationItemService rationItemService;
-    private final ReceiptService receiptService;
+    private final RecipeService recipeService;
 
     public RationItemController(
             @Autowired RationItemService rationItemService,
-            @Autowired ReceiptService receiptService
+            @Autowired RecipeService recipeService
     ) {
         this.rationItemService = rationItemService;
-        this.receiptService = receiptService;
+        this.recipeService = recipeService;
     }
 
     @PostMapping("/ration")
     @ResponseStatus(HttpStatus.CREATED)
     public RationItem create (Authentication auth, UUID receiptId, String category) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        Receipt receipt = this.receiptService.findById(receiptId);
+        Recipe recipe = this.recipeService.findById(receiptId);
 
         return null;
     }

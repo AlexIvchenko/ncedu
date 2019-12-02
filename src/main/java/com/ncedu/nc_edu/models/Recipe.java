@@ -93,17 +93,17 @@ public class Recipe {
         JAPANESE;
     }
 
-    public Receipt() {}
+    public Recipe() {}
 
-    public Receipt(Receipt receipt) {
-        this.calories = receipt.calories;
-        this.carbohydrates = receipt.carbohydrates;
-        this.cookingMethod = receipt.cookingMethod;
-        this.cuisine = receipt.cuisine;
-        this.fats = receipt.fats;
-        this.cookingTime = receipt.cookingTime;
+    public Recipe(Recipe recipe) {
+        this.calories = recipe.calories;
+        this.carbohydrates = recipe.carbohydrates;
+        this.cookingMethod = recipe.cookingMethod;
+        this.cuisine = recipe.cuisine;
+        this.fats = recipe.fats;
+        this.cookingTime = recipe.cookingTime;
         this.id = UUID.randomUUID();
-        this.ingredientsReceipts = new HashSet<>(receipt.ingredientsReceipts);
+        this.ingredientsRecipes = new HashSet<>(recipe.ingredientsRecipes);
 //        this.ingredientsReceiptsDTOs.stream().peek(ingredientsReceipts -> {
 //            ingredientsReceipts.setReceipt(this);
 //            ingredientsReceipts.getId().setReceiptId(this.id);
@@ -112,15 +112,15 @@ public class Recipe {
 //            ingredientsReceipts.setReceipt(this);
 //            ingredientsReceipts.getId().setReceiptId(this.id);
 //        });
-        this.name = receipt.name;
+        this.name = recipe.name;
         this.owner = null;
-        this.price = receipt.price;
-        this.proteins = receipt.proteins;
-        this.rating = receipt.rating;
-        this.steps = new ArrayList<>(receipt.steps);
+        this.price = recipe.price;
+        this.proteins = recipe.proteins;
+        this.rating = recipe.rating;
+        this.steps = new ArrayList<>(recipe.steps);
         //this.steps.stream().peek(receiptStep -> receiptStep.setId(UUID.randomUUID()));
         //this.steps.forEach(receiptStep -> receiptStep.setId(UUID.randomUUID()));
-        this.tags = new HashSet<>(receipt.tags);
+        this.tags = new HashSet<>(recipe.tags);
     }
     
     public void setSteps(List<RecipeStep> steps) {
