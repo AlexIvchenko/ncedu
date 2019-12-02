@@ -1,15 +1,16 @@
 package com.ncedu.nc_edu.dto.resources;
 
 import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
-import com.ncedu.nc_edu.models.Receipt;
+import com.ncedu.nc_edu.models.Recipe;
 import lombok.Data;
 
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
-public class ReceiptSearchCriteria {
+public class RecipeSearchCriteria {
     @PositiveOrZero(message = "Calories min must be greater than or equal to zero")
     private Integer caloriesMin;
     @PositiveOrZero(message = "Calories max must be greater than or equal to zero")
@@ -40,7 +41,7 @@ public class ReceiptSearchCriteria {
     private String name;
 
     private Set<
-            @ValueOfEnum(value = Receipt.CookingMethod.class, message = "Cooking method must be any of " +
+            @ValueOfEnum(value = Recipe.CookingMethod.class, message = "Cooking method must be any of " +
             "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE") String
             > cookingMethods;
 
@@ -57,8 +58,35 @@ public class ReceiptSearchCriteria {
     private Set<String> includeTags;
     private Set<String> excludeTags;
 
+    private Set<UUID> includeIngredients;
+    private Set<UUID> excludeIngredients;
+
     private Set<
-            @ValueOfEnum(value = Receipt.Cuisine.class, message = "Cuisine must be any of " +
+            @ValueOfEnum(value = Recipe.Cuisine.class, message = "Cuisine must be any of " +
                     "RUSSIAN|ITALIAN|JAPANESE") String
             > cuisines;
+
+    public boolean hasAnyCriteria() {
+        return caloriesMax != null ||
+                caloriesMin != null ||
+                fatsMin != null ||
+                fatsMax != null ||
+                carbohydratesMin != null ||
+                carbohydratesMax != null ||
+                proteinsMin != null ||
+                proteinsMax != null ||
+                ratingMin != null ||
+                ratingMax != null ||
+                name != null ||
+                cookingMethods != null ||
+                cookingTimeMin != null ||
+                cookingTimeMax != null ||
+                priceMin != null ||
+                priceMax != null ||
+                includeTags != null ||
+                excludeTags != null ||
+                includeIngredients != null ||
+                excludeIngredients != null ||
+                cuisines != null;
+    }
 }

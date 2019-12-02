@@ -1,24 +1,15 @@
 package com.ncedu.nc_edu.dto.assemblers;
 
+import com.ncedu.nc_edu.controllers.AdminController;
+import com.ncedu.nc_edu.controllers.ModeratorController;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.UserResource;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserRole.*;
-import com.ncedu.nc_edu.security.CustomUserDetails;
-import com.ncedu.nc_edu.security.SecurityUtils;
+import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-
-import java.security.Principal;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -26,12 +17,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class UserAssembler extends RepresentationModelAssemblerSupport<User, UserResource> {
     private Class<UserController> controllerClass;
-    private SecurityUtils securityUtils;
+    private SecurityAccessResolver securityAccessResolver;
 
-    public UserAssembler(@Autowired SecurityUtils securityUtils) {
+    public UserAssembler(@Autowired SecurityAccessResolver securityAccessResolver) {
         super(User.class, UserResource.class);
         this.controllerClass = UserController.class;
-        this.securityUtils = securityUtils;
+        this.securityAccessResolver = securityAccessResolver;
     }
 
     @Override
@@ -39,14 +30,29 @@ public class UserAssembler extends RepresentationModelAssemblerSupport<User, Use
         UserResource userResource = new UserResource();
         userResource.setId(entity.getId());
         userResource.setUsername(entity.getUsername());
+        userResource.setEmail(entity.getEmail());
+        userResource.setBirthday(entity.getBirthday());
+        userResource.setGender(entity.getGender().toString());
+        userResource.setHeight(entity.getHeight());
+        userResource.setWeight(entity.getWeight());
         userResource.add(linkTo(methodOn(controllerClass).getById(entity.getId())).withSelfRel().withType("GET"));
-        userResource.add(linkTo(methodOn(controllerClass).getReceipts(userResource.getId())).withRel("receipts").withType("GET"));
+        userResource.add(linkTo(methodOn(controllerClass).getRecipes(userResource.getId())).withRel("recipes").withType("GET"));
+        userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
 
-        if (securityUtils.isSelfOrGranted(entity.getId())) {
-            userResource.add(linkTo(methodOn(controllerClass).getUserReviews(userResource.getId())).withRel("reviews").withType("GET"));
-            userResource.add(linkTo(methodOn(controllerClass).getInfo(userResource.getId())).withRel("info").withType("GET"));
+        if (securityAccessResolver.isSelf(entity.getId())) {
+            userResource.add(linkTo(methodOn(controllerClass).update(entity.getId(), null)).withRel("update").withType("PUT"));
+            if (securityAccessResolver.isModerator()) {
+                userResource.add(linkTo(methodOn(ModeratorController.class).moderatorRoot()).withRel("moderator").withType("GET"));
+            }
+            if (securityAccessResolver.isAdmin()) {
+                userResource.add(linkTo(methodOn(AdminController.class).adminRoot()).withRel("admin").withType("GET"));
+            }
         }
-
         return userResource;
+    }
+
+    @Override
+    public CollectionModel<UserResource> toCollectionModel(Iterable<? extends User> entities) {
+        return super.toCollectionModel(entities);
     }
 }
