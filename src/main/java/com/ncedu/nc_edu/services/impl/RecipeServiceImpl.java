@@ -1,10 +1,13 @@
 package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.dto.resources.*;
+import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
+import com.ncedu.nc_edu.repositories.UserRepository;
+import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
 import com.ncedu.nc_edu.services.TagService;
@@ -25,14 +28,17 @@ public class RecipeServiceImpl implements RecipeService {
     private final RecipeRepository recipeRepository;
     private final TagService tagService;
     private final IngredientService ingredientService;
+    private final SecurityAccessResolver securityAccessResolver;
 
     public RecipeServiceImpl(
             @Autowired RecipeRepository recipeRepository,
             @Autowired TagService tagService,
-            @Autowired IngredientService ingredientService) {
+            @Autowired IngredientService ingredientService,
+            @Autowired SecurityAccessResolver securityAccessResolver) {
         this.recipeRepository = recipeRepository;
         this.tagService = tagService;
         this.ingredientService = ingredientService;
+        this.securityAccessResolver = securityAccessResolver;
     }
 
     public Page<Recipe> findAll(Pageable pageable) {
@@ -219,6 +225,45 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setIngredientsRecipes(ingredients);
 
         return this.recipeRepository.save(recipe);
+    }
+
+    @Override
+    public List<UserReview> findReviewsById(UUID id) {
+        return recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("receipt")).getReviews();
+    }
+
+    @Override
+    public UserReview findReviewByIds(UUID receiptId, UUID reviewId) {
+        List<UserReview> reviews = recipeRepository.findById(receiptId).orElseThrow(() -> new EntityDoesNotExistsException("receipt"))
+                .getReviews().stream().filter(rev -> rev.getId().equals(reviewId)).collect(Collectors.toList());
+        if (reviews.size() == 0)
+            throw new EntityDoesNotExistsException("review");
+        return reviews.get(0);
+    }
+
+    @Override
+    public UserReview addReview(UUID recipeId, UserReviewResource userReviewResource) {
+        UserReview review = new UserReview();
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+        User user = securityAccessResolver.getUser();
+        if (recipe.getReviews().stream().anyMatch(rev -> rev.getUser().getId().equals(user.getId()))) {
+            throw new AlreadyExistsException("Review", "author");
+        }
+        review.setId(UUID.randomUUID());
+        review.setUser(user);
+        review.setRecipe(recipe);
+        review.setCreated_on(new Date());
+        review.setRating(userReviewResource.getRating());
+        review.setReview(userReviewResource.getReview());
+        recipe.getReviews().add(review);
+        recipe.setReviewsNumber(recipe.getReviewsNumber() + 1);
+        if (recipe.getReviewsNumber() == 1) {
+            recipe.setRating(review.getRating());
+        } else {
+            recipe.setRating((recipe.getRating() * (recipe.getReviewsNumber() - 1) + review.getRating()) / recipe.getReviewsNumber());
+        }
+        recipeRepository.save(recipe);
+        return review;
     }
 
     @Override
