@@ -6,7 +6,6 @@ import com.ncedu.nc_edu.dto.resources.RecipeResource;
 import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
-import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.security.core.Authentication;
@@ -21,12 +20,15 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe, RecipeResource> {
     private final SecurityAccessResolver securityAccessResolver;
     private final IngredientAssembler ingredientAssembler;
+    private final RecipeIngredientAssembler recipeIngredientAssembler;
 
     public RecipeAssembler(@Autowired SecurityAccessResolver securityAccessResolver,
-                            @Autowired IngredientAssembler ingredientAssembler) {
+                            @Autowired IngredientAssembler ingredientAssembler,
+                           @Autowired RecipeIngredientAssembler recipeIngredientAssembler) {
         super(Recipe.class, RecipeResource.class);
         this.securityAccessResolver = securityAccessResolver;
         this.ingredientAssembler = ingredientAssembler;
+        this.recipeIngredientAssembler = recipeIngredientAssembler;
     }
 
     @Override
@@ -52,14 +54,7 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         );
 
         resource.setIngredients(entity.getIngredientsRecipes().stream()
-                .map(ingredientRecipe -> {
-                    JSONObject json = new JSONObject();
-                    json.put("id", ingredientRecipe.getIngredient().getId());
-                    json.put("name", ingredientRecipe.getIngredient().getName());
-                    json.put("valueType", ingredientRecipe.getValueType());
-                    json.put("value", ingredientRecipe.getValue());
-                    return json;
-                }).collect(Collectors.toList())
+                .map(this.recipeIngredientAssembler::toModel).collect(Collectors.toList())
         );
 
         resource.add(linkTo(methodOn(RecipeController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));

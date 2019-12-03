@@ -119,6 +119,10 @@ public class RecipeController {
     public RecipeResource create(Authentication auth, @RequestBody @Valid RecipeWithStepsResource recipe) {
         User user = ((CustomUserDetails)(auth.getPrincipal())).getUser();
 
+        if (recipe.getSteps() == null) {
+            throw new RequestParseException("Recipe must contain at least 1 step");
+        }
+
         recipe.getSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
@@ -142,6 +146,10 @@ public class RecipeController {
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
 
+        if (recipe.getSteps() == null) {
+            throw new RequestParseException("Recipe must contain at least 1 step");
+        }
+
         recipe.getSteps().forEach(step -> {
             if (step.getDescription() == null && step.getPicture() == null) {
                 throw new RequestParseException("Step must contain either picture or description");
@@ -164,13 +172,17 @@ public class RecipeController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "/recipes/search")
+    @GetMapping(value = "/recipes/search")
     public PagedModel search(
             Authentication auth,
-            @RequestBody(required = false) @Valid RecipeSearchCriteria recipeSearchCriteria,
+            @Valid RecipeSearchCriteria recipeSearchCriteria,
             Pageable pageable
     ) {
         if (recipeSearchCriteria == null) {
+            return this.getAll(auth, pageable);
+        }
+
+        if (!recipeSearchCriteria.hasAnyCriteria()) {
             return this.getAll(auth, pageable);
         }
 
@@ -178,8 +190,8 @@ public class RecipeController {
 
         PagedModel paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
                         .collect(Collectors.toList()), new PagedModel.PageMetadata(
-                                page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
-        ));
+                                page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages())
+        );
 
 //        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.next())).withRel("next"));
 //        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.previousOrFirst())).withRel("prev"));
