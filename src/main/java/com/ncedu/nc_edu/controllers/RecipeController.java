@@ -1,11 +1,9 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
+import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
 import com.ncedu.nc_edu.dto.assemblers.RecipeStepAssembler;
-import com.ncedu.nc_edu.dto.resources.RecipeResource;
-import com.ncedu.nc_edu.dto.resources.RecipeSearchCriteria;
-import com.ncedu.nc_edu.dto.resources.RecipeStepResource;
-import com.ncedu.nc_edu.dto.resources.RecipeWithStepsResource;
+import com.ncedu.nc_edu.dto.resources.*;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.User;
@@ -17,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.EmbeddedWrapper;
 import org.springframework.hateoas.server.core.EmbeddedWrappers;
 import org.springframework.http.HttpStatus;
@@ -39,15 +38,18 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class RecipeController {
     private final RecipeService recipeService;
     private final RecipeAssembler recipeAssembler;
+    private final UserReviewAssembler userReviewAssembler;
     private final RecipeStepAssembler recipeStepAssembler;
 
     public RecipeController(
             @Autowired RecipeService recipeService,
             @Autowired RecipeAssembler recipeAssembler,
+            @Autowired UserReviewAssembler userReviewAssembler,
             @Autowired RecipeStepAssembler recipeStepAssembler
     ) {
         this.recipeService = recipeService;
         this.recipeAssembler = recipeAssembler;
+        this.userReviewAssembler = userReviewAssembler;
         this.recipeStepAssembler = recipeStepAssembler;
     }
 
@@ -72,6 +74,26 @@ public class RecipeController {
     public RecipeResource getById(Authentication auth, @PathVariable UUID id) {
         RecipeResource resource = this.recipeAssembler.toModel(this.recipeService.findById(id));
         return resource;
+    }
+
+    @GetMapping(value = "/recipes/{id}/reviews")
+    public ResponseEntity<CollectionModel<UserReviewResource>> getReviews(@PathVariable UUID id) {
+        CollectionModel resource = userReviewAssembler.toCollectionModel(recipeService.findReviewsById(id));
+        return ResponseEntity.ok(resource);
+    }
+
+    @PostMapping(value = "/recipes/{id}/reviews")
+    public ResponseEntity<RepresentationModel<UserReviewResource>> addReview(@PathVariable UUID id,
+                                                                  @RequestBody UserReviewResource reviewResource) {
+        UserReviewResource resource = userReviewAssembler.toModel(recipeService.addReview(id, reviewResource));
+        return ResponseEntity.ok(resource);
+    }
+
+    @GetMapping(value = "/recipes/{id}/reviews/{reviewId}")
+    public ResponseEntity<RepresentationModel<UserReviewResource>> getReviews(@PathVariable UUID id,
+                                                                          @PathVariable UUID reviewId) {
+        UserReviewResource resource = userReviewAssembler.toModel(recipeService.findReviewByIds(id, reviewId));
+        return ResponseEntity.ok(resource);
     }
 
     @GetMapping(value = "/recipes/{id}/steps")
