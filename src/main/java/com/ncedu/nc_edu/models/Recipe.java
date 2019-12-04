@@ -14,6 +14,8 @@ public class Recipe {
     @Type(type = "uuid-char")
     private UUID id;
 
+    private String state;
+
     private String name;
     private Integer calories;
     private Float proteins;
@@ -50,6 +52,25 @@ public class Recipe {
     @ManyToOne
     private User owner;
 
+    public enum CookingMethod {
+        OVEN,
+        BLENDER,
+        GRILL,
+        WOK,
+        MICROWAVE,
+        FREEZER,
+        STEAMER,
+        STOVE;
+    }
+
+    public enum Cuisine {
+        RUSSIAN,
+        ITALIAN,
+        JAPANESE;
+    }
+
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -74,23 +95,6 @@ public class Recipe {
                 ", carbohydrates=" + carbohydrates +
                 ", rating=" + rating +
                 '}';
-    }
-
-    public enum CookingMethod {
-        OVEN,
-        BLENDER,
-        GRILL,
-        WOK,
-        MICROWAVE,
-        FREEZER,
-        STEAMER,
-        STOVE;
-    }
-
-    public enum Cuisine {
-        RUSSIAN,
-        ITALIAN,
-        JAPANESE;
     }
 
     public void setSteps(List<RecipeStep> steps) {
