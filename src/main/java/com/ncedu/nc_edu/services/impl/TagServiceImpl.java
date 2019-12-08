@@ -1,6 +1,5 @@
 package com.ncedu.nc_edu.services.impl;
 
-import com.ncedu.nc_edu.dto.resources.TagResource;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.Tag;
 import com.ncedu.nc_edu.repositories.TagRepository;
@@ -43,15 +42,15 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Tag add(TagResource newTag) {
-        Optional<Tag> tagOptional = tagRepository.findById(newTag.getName());
+    public Tag add(String name) {
+        Optional<Tag> tagOptional = tagRepository.findById(name);
 
         if (tagOptional.isPresent()) {
             return tagOptional.get();
         }
 
         Tag tag = new Tag();
-        tag.setName(newTag.getName());
+        tag.setName(name);
 
         return tagRepository.save(tag);
     }

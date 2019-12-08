@@ -35,7 +35,7 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
         query.distinct(true);
         query.orderBy(criteriaBuilder.asc(root.get("id")));
         return criteriaBuilder.and(fill(root, query, criteriaBuilder).toPredicate(root, query, criteriaBuilder));
-}
+    }
 
     private Specification<Recipe> fill(Root<Recipe> r, CriteriaQuery<?> q, CriteriaBuilder cb) {
         Specification<Recipe> spec = (root, query, criteriaBuilder) -> null;
@@ -190,9 +190,9 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
                 criteriaBuilder.like(root.get("name"), value);
     }
 
-    private Specification<Recipe> inCookingMethods(Set<Recipe.CookingMethod> methods) {
+    private Specification<Recipe> inCuisines(Set<Recipe.Cuisine> cuisines) {
         return (root, query, criteriaBuilder) ->
-                root.get("cookingMethod").in(methods);
+                root.get("cuisine").in(cuisines);
     }
 
     private Specification<Recipe> cookingTimeGreaterThanOrEqualTo(Integer value) {
@@ -215,9 +215,13 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
                 criteriaBuilder.lessThanOrEqualTo(root.get("price"), value);
     }
 
-    private Specification<Recipe> inCuisines(Set<Recipe.Cuisine> cuisines) {
-        return (root, query, criteriaBuilder) ->
-                root.get("cuisine").in(cuisines);
+    private Specification<Recipe> inCookingMethods(Set<Recipe.CookingMethod> methods) {
+        return (root, query, criteriaBuilder) -> {
+            SetJoin<Recipe, Recipe.CookingMethod> recipeCookingMethodSetJoin =
+                    root.joinSet("cookingMethods", JoinType.INNER);
+
+            return recipeCookingMethodSetJoin.in(methods);
+        };
     }
 
     private Specification<Recipe> containTags(Set<Tag> tags) {
@@ -227,12 +231,12 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
             SetJoin<Recipe, Tag> recipeTagSetJoin = recipe.joinSet("tags", JoinType.INNER);
 
             return root.in(
-                        sq.select(recipe).groupBy(recipe.get("id"))
-                        .having(criteriaBuilder.equal(
+                    sq.select(recipe).groupBy(recipe.get("id"))
+                            .having(criteriaBuilder.equal(
                                     criteriaBuilder.count(recipe), tags.size()
-                                )
-                        ).where(recipeTagSetJoin.in(tags))
-                    );
+                                    )
+                            ).where(recipeTagSetJoin.in(tags))
+            );
         };
     }
 

@@ -1,6 +1,5 @@
 package com.ncedu.nc_edu.dto.resources;
 
-import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
 import com.ncedu.nc_edu.models.Recipe;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -49,14 +48,10 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
     private Integer price;
 
     @NotNull
-    @ValueOfEnum(value = Recipe.CookingMethod.class, message = "Cooking method must be any of " +
-            "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE")
-    private String cookingMethod;
+    private Set<Recipe.CookingMethod> cookingMethods;
 
     @NotNull
-    @ValueOfEnum(value = Recipe.Cuisine.class, message = "Cuisine must be any of " +
-            "RUSSIAN|ITALIAN|JAPANESE")
-    private String cuisine;
+    private Recipe.Cuisine cuisine;
 
     private Set<String> tags;
 
@@ -65,5 +60,5 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
     /**
      * Field only for returning. Should be never updated.
      */
-    //private UUID owner;
+    private UUID owner;
 }
