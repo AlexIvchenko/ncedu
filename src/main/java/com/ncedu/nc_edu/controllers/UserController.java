@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.controllers;
 
+import com.ncedu.nc_edu.dto.UserRegistrationCredentials;
 import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
 import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
@@ -45,12 +46,13 @@ public class UserController {
         this.recipeAssembler = recipeAssembler;
     }
 
+    //    @PostMapping(value = "/register") //
+//    public ResponseEntity<RepresentationModel<UserResource>> add(
+//            @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
+//            @RequestParam @NotBlank(message = "cannot be empty") String password)
     @PostMapping(value = "/register")
-    public ResponseEntity<RepresentationModel<UserResource>> add(
-            @RequestParam @NotBlank(message = "cannot be empty") @Email(message = "must be a valid email") String email,
-            @RequestParam @NotBlank(message = "cannot be empty") String password)
-    {
-        User user = userService.registerUser(email, password);
+    public ResponseEntity<RepresentationModel<UserResource>> add(@RequestBody @Valid UserRegistrationCredentials credentials) {
+        User user = userService.registerUser(credentials.getEmail(), credentials.getPassword());
         UserResource userResource = userAssembler.toModel(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResource);
     }
@@ -91,8 +93,7 @@ public class UserController {
     @PutMapping(value = "/users/{id}")
     public ResponseEntity<RepresentationModel<UserResource>> update(
             @PathVariable UUID id,
-            @Valid @RequestBody UserResource userResource)
-    {
+            @Valid @RequestBody UserResource userResource) {
         log.info(userResource.toString());
         userResource.setId(id);
         return ResponseEntity.ok(userAssembler.toModel(userService.update(userResource)));
