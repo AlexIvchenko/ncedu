@@ -13,26 +13,26 @@ public class RecipeStateMachineListener implements StateMachineListener<RecipeSt
     @Override
     public void stateChanged(State<RecipeState, RecipeEvent> oldState, State<RecipeState, RecipeEvent> newState) {
         if (oldState == null) {
-            log.info("State changed: -> " + newState.toString());
+            log.debug("State changed: -> " + newState.toString());
             return;
         }
 
-        log.info("State changed: " + oldState.toString() + " -> " + newState.toString());
+        log.debug("State changed: " + oldState.toString() + " -> " + newState.toString());
     }
 
     @Override
     public void stateEntered(State<RecipeState, RecipeEvent> state) {
-        log.info("State entered: " + state.toString());
+        log.debug("State entered: " + state.toString());
     }
 
     @Override
     public void stateExited(State<RecipeState, RecipeEvent> state) {
-        log.info("State exited: " + state.toString());
+        log.debug("State exited: " + state.toString());
     }
 
     @Override
     public void eventNotAccepted(Message<RecipeEvent> message) {
-        log.info("Event not accepted: " + message);
+        log.debug("Event not accepted: " + message);
     }
 
     @Override
@@ -52,12 +52,12 @@ public class RecipeStateMachineListener implements StateMachineListener<RecipeSt
 
     @Override
     public void stateMachineStarted(StateMachine<RecipeState, RecipeEvent> stateMachine) {
-        log.info("Started machine");
+        log.debug("Machine started");
     }
 
     @Override
     public void stateMachineStopped(StateMachine<RecipeState, RecipeEvent> stateMachine) {
-
+        log.debug("Machine stopped");
     }
 
     @Override

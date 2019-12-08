@@ -6,11 +6,12 @@ import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
-import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
 import com.ncedu.nc_edu.services.TagService;
+import com.ncedu.nc_edu.statemachine.RecipeState;
+import com.ncedu.nc_edu.statemachine.RecipeStateMachineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,20 +30,25 @@ public class RecipeServiceImpl implements RecipeService {
     private final TagService tagService;
     private final IngredientService ingredientService;
     private final SecurityAccessResolver securityAccessResolver;
+    private final RecipeStateMachineFactory stateMachineFactory;
 
+    @Autowired
     public RecipeServiceImpl(
-            @Autowired RecipeRepository recipeRepository,
-            @Autowired TagService tagService,
-            @Autowired IngredientService ingredientService,
-            @Autowired SecurityAccessResolver securityAccessResolver) {
+            RecipeRepository recipeRepository,
+            TagService tagService,
+            IngredientService ingredientService,
+            SecurityAccessResolver securityAccessResolver,
+            RecipeStateMachineFactory stateMachineFactory) {
         this.recipeRepository = recipeRepository;
         this.tagService = tagService;
         this.ingredientService = ingredientService;
         this.securityAccessResolver = securityAccessResolver;
+        this.stateMachineFactory = stateMachineFactory;
+
     }
 
     public Page<Recipe> findAll(Pageable pageable) {
-        return this.recipeRepository.findAll(pageable);
+        return this.recipeRepository.findAllByVisibleIsTrue(pageable);
     }
 
     public Recipe findById(UUID id) {
@@ -186,6 +192,9 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setCuisine(resource.getCuisine());
         recipe.setCookingTime(resource.getCookingTime());
         recipe.setPrice(resource.getPrice());
+
+        // initial state
+        recipe.setState(RecipeState.WAITING_FOR_APPROVAL);
 
         if (resource.getCookingMethods() != null) {
             recipe.setCookingMethods(resource.getCookingMethods());

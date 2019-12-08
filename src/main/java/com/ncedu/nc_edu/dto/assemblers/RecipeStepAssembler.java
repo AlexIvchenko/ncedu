@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.dto.assemblers;
 
+import com.ncedu.nc_edu.controllers.PictureController;
 import com.ncedu.nc_edu.controllers.RecipeController;
 import com.ncedu.nc_edu.dto.resources.RecipeStepResource;
 import com.ncedu.nc_edu.models.RecipeStep;
@@ -24,6 +25,7 @@ public class RecipeStepAssembler extends RepresentationModelAssemblerSupport<Rec
         resource.setPicture(entity.getPicture());
 
         resource.add(linkTo(methodOn(RecipeController.class).getRecipeSteps(entity.getId())).withRel("recipe"));
+        resource.add(linkTo(methodOn(PictureController.class).get(entity.getPicture())).withRel("picture"));
 
         return resource;
     }

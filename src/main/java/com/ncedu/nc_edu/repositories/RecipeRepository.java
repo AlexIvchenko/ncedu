@@ -14,10 +14,10 @@ import java.util.UUID;
 @Repository
 public interface RecipeRepository extends JpaRepository<Recipe, UUID>, JpaSpecificationExecutor<Recipe> {
     List<Recipe> findByNameContaining(String name);
+
     List<Recipe> findByOwner(User user);
 
     Page<Recipe> findAll(Pageable pageable);
 
-    //Page<Recipe> findAll(Specification<Recipe> specification, Pageable pageable);
-    //long count(Specification<Recipe> specification);
+    Page<Recipe> findAllByVisibleIsTrue(Pageable pageable);
 }

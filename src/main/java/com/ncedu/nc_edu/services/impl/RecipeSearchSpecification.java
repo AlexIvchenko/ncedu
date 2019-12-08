@@ -132,7 +132,7 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
             spec = spec.and(notContainIngredients(this.excludeIngredients));
         }
 
-        return spec;
+        return spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isPublic"), true));
     }
 
     private Specification<Recipe> caloriesGreaterThanOrEqualTo(Integer value) {

@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.models;
 
+import com.ncedu.nc_edu.statemachine.RecipeState;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 
@@ -14,7 +15,7 @@ public class Recipe {
     @Type(type = "uuid-char")
     private UUID id;
 
-    private String state;
+    private RecipeState state;
 
     private String name;
     private Integer calories;
@@ -76,6 +77,13 @@ public class Recipe {
         ITALIAN,
         JAPANESE;
     }
+
+    @Column(name = "is_public")
+    private boolean visible;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "original_ref", referencedColumnName = "id")
+    private Recipe originalRef;
 
     @Override
     public boolean equals(Object o) {
