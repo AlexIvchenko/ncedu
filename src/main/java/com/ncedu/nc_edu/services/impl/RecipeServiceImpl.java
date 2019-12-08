@@ -6,7 +6,6 @@ import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
-import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
@@ -236,6 +235,7 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe")));
         recipe.setOwner(user);
         return this.recipeRepository.save(recipe);
+    }
 
     public List<UserReview> findReviewsById(UUID id) {
         return recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("receipt")).getReviews();
