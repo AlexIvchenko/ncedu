@@ -52,7 +52,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<UserRole> roles;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<UserReview> reviews;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)

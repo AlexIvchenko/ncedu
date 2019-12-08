@@ -14,6 +14,8 @@ public class Recipe {
     @Type(type = "uuid-char")
     private UUID id;
 
+    private String state;
+
     private String name;
     private Integer calories;
     private Float proteins;
@@ -22,12 +24,17 @@ public class Recipe {
     private Float rating;
     private Integer price;
 
+    @Column(name = "reviews_number")
+    private Integer reviewsNumber;
+
     @Column(name = "cooking_time")
     private Integer cookingTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "cooking_method")
-    private CookingMethod cookingMethod;
+    @ElementCollection(targetClass = CookingMethod.class)
+    @CollectionTable(name = "recipe_cooking_methods", joinColumns = @JoinColumn(name = "recipe_id"))
+    @Column(name = "method")
+    private Set<CookingMethod> cookingMethods;
 
     @Enumerated(EnumType.STRING)
     private Cuisine cuisine;
@@ -35,6 +42,9 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "index")
     private List<RecipeStep> steps;
+
+    @OneToMany(mappedBy = "recipe", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<UserReview> reviews;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<IngredientsRecipes> ingredientsRecipes;
@@ -49,6 +59,23 @@ public class Recipe {
 
     @ManyToOne
     private User owner;
+
+    public enum CookingMethod {
+        OVEN,
+        BLENDER,
+        GRILL,
+        WOK,
+        MICROWAVE,
+        FREEZER,
+        STEAMER,
+        STOVE;
+    }
+
+    public enum Cuisine {
+        RUSSIAN,
+        ITALIAN,
+        JAPANESE;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -74,23 +101,6 @@ public class Recipe {
                 ", carbohydrates=" + carbohydrates +
                 ", rating=" + rating +
                 '}';
-    }
-
-    public enum CookingMethod {
-        OVEN,
-        BLENDER,
-        GRILL,
-        WOK,
-        MICROWAVE,
-        FREEZER,
-        STEAMER,
-        STOVE;
-    }
-
-    public enum Cuisine {
-        RUSSIAN,
-        ITALIAN,
-        JAPANESE;
     }
 
     public Recipe() {

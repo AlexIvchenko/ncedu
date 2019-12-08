@@ -53,6 +53,7 @@ public class SecurityConfig {
                     .antMatchers(HttpMethod.DELETE, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
                     .antMatchers(HttpMethod.GET, "/recipes/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/pictures/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/ingredients/**").permitAll()
                     .antMatchers("/").permitAll()
                     .antMatchers("/register").permitAll()
                     .anyRequest().authenticated()
