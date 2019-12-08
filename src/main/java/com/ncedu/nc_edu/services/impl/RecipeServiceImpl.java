@@ -84,8 +84,8 @@ public class RecipeServiceImpl implements RecipeService {
             oldRecipe.setCarbohydrates(resource.getCarbohydrates() == 0 ? null : resource.getCarbohydrates());
         }
 
-        if (resource.getCookingMethod() != null) {
-            oldRecipe.setCookingMethod(Recipe.CookingMethod.valueOf(resource.getCookingMethod()));
+        if (resource.getCookingMethods() != null) {
+            oldRecipe.setCookingMethods(resource.getCookingMethods());
         }
 
         if (resource.getCookingTime() != null) {
@@ -97,12 +97,12 @@ public class RecipeServiceImpl implements RecipeService {
         }
 
         if (resource.getCuisine() != null) {
-            oldRecipe.setCuisine(Recipe.Cuisine.valueOf(resource.getCuisine()));
+            oldRecipe.setCuisine(resource.getCuisine());
         }
 
         if (resource.getTags() != null) {
             oldRecipe.setTags(resource.getTags().stream()
-                    .map(tagService::findByName).collect(Collectors.toSet()));
+                    .map(tagService::add).collect(Collectors.toSet()));
         }
 
         if (resource.getIngredients() != null) {
@@ -177,14 +177,17 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setFats(resource.getFats());
         recipe.setRating(0f);
         recipe.setOwner(owner);
-        recipe.setCuisine(Recipe.Cuisine.valueOf(resource.getCuisine()));
-        recipe.setCookingMethod(Recipe.CookingMethod.valueOf(resource.getCookingMethod()));
+        recipe.setCuisine(resource.getCuisine());
         recipe.setCookingTime(resource.getCookingTime());
         recipe.setPrice(resource.getPrice());
 
+        if (resource.getCookingMethods() != null) {
+            recipe.setCookingMethods(resource.getCookingMethods());
+        }
+
         if (resource.getTags() != null) {
             recipe.setTags(resource.getTags().stream()
-                    .map(tagService::findByName).collect(Collectors.toSet()));
+                    .map(tagService::add).collect(Collectors.toSet()));
         }
 
         if (steps == null) {

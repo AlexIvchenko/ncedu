@@ -1,6 +1,5 @@
 package com.ncedu.nc_edu.services;
 
-import com.ncedu.nc_edu.dto.resources.TagResource;
 import com.ncedu.nc_edu.models.Tag;
 
 import java.util.List;
@@ -12,5 +11,5 @@ public interface TagService {
     List<Tag> findAllByNameContains(String name);
 
     boolean existsByName(String name);
-    Tag add(TagResource newTag);
+    Tag add(String name);
 }

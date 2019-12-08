@@ -1,6 +1,7 @@
 package com.ncedu.nc_edu.statemachine;
 
 import com.ncedu.nc_edu.statemachine.action.*;
+import com.ncedu.nc_edu.statemachine.guard.IsModeratorGuard;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
@@ -29,7 +30,7 @@ public class RecipeStateMachineConfiguration extends EnumStateMachineConfigurerA
     public void configure(StateMachineStateConfigurer<RecipeState, RecipeEvent> states) throws Exception {
         states
                 .withStates()
-                .initial(CREATED)
+                .initial(WAITING_FOR_APPROVAL)
                 .end(RecipeState.DELETED)
                 .states(EnumSet.allOf(RecipeState.class));
     }
@@ -38,21 +39,21 @@ public class RecipeStateMachineConfiguration extends EnumStateMachineConfigurerA
     public void configure(StateMachineTransitionConfigurer<RecipeState, RecipeEvent> transitions) throws Exception {
         transitions
                 .withExternal()
-                .source(CREATED)
+                .source(WAITING_FOR_APPROVAL)
                 .target(PUBLISHED)
                 .event(APPROVE)
                 .action(approveAction())
 
                 .and()
                 .withExternal()
-                .source(CREATED)
+                .source(WAITING_FOR_APPROVAL)
                 .target(CHANGES_NEEDED)
                 .event(REQUEST_FOR_CHANGES)
                 .action(requestChangesAction())
 
                 .and()
                 .withExternal()
-                .source(CREATED)
+                .source(WAITING_FOR_APPROVAL)
                 .target(DELETED)
                 .event(DELETE)
                 .action(deleteAction())
@@ -67,16 +68,9 @@ public class RecipeStateMachineConfiguration extends EnumStateMachineConfigurerA
                 .and()
                 .withExternal()
                 .source(CHANGES_NEEDED)
-                .target(CREATED)
+                .target(WAITING_FOR_APPROVAL)
                 .event(MAKE_CHANGES)
                 .action(makeChangesAction())
-
-                .and()
-                .withExternal()
-                .source(PUBLISHED)
-                .target(PENDING_FOR_DELETION)
-                .event(DELETION_REQUEST)
-                .action(deletionRequestAction())
 
                 .and()
                 .withExternal()
@@ -108,17 +102,10 @@ public class RecipeStateMachineConfiguration extends EnumStateMachineConfigurerA
 
                 .and()
                 .withExternal()
-                .source(PENDING_FOR_DELETION)
+                .source(PUBLISHED)
                 .target(DELETED)
-                .event(DELETION_APPROVE)
-                .action(deleteAction())
-
-                .and()
-                .withExternal()
-                .source(PENDING_FOR_DELETION)
-                .target(PUBLISHED)
-                .event(DELETION_DECLINE)
-                .action(deletionDeclineAction());
+                .guard(isModeratorGuard())
+                .action(deleteAction());
     }
 
     @Bean
@@ -174,5 +161,10 @@ public class RecipeStateMachineConfiguration extends EnumStateMachineConfigurerA
     @Bean
     public MakeChangesAction makeChangesAction() {
         return new MakeChangesAction();
+    }
+
+    @Bean
+    public IsModeratorGuard isModeratorGuard() {
+        return new IsModeratorGuard();
     }
 }

@@ -9,7 +9,4 @@ public enum RecipeEvent {
     EDIT_CLONE,
     EDIT_DECLINE,
     DELETE,
-    DELETION_REQUEST,
-    DELETION_DECLINE,
-    DELETION_APPROVE
 }

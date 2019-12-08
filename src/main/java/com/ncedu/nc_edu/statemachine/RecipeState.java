@@ -2,12 +2,11 @@ package com.ncedu.nc_edu.statemachine;
 
 public enum RecipeState {
     // UNLISTED:
-    CREATED,
+    WAITING_FOR_APPROVAL,
     CHANGES_NEEDED,
-    EDITED,
     // PUBLIC:
+    EDITED,
     PUBLISHED,
-    PENDING_FOR_DELETION,
-    // ACHIEVED
+    // ACHIEVED:
     DELETED
 }

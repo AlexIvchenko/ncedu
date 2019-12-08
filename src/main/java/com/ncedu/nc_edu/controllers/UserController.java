@@ -8,7 +8,7 @@ import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserReview;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.RepresentationModel;
@@ -18,12 +18,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import lombok.extern.slf4j.Slf4j;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @Slf4j
@@ -48,7 +47,7 @@ public class UserController {
     {
         User user = userService.registerUser(email, password);
         UserResource userResource = userAssembler.toModel(user);
-        return new ResponseEntity(userResource, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResource);
     }
 
     @GetMapping(value = "/users")

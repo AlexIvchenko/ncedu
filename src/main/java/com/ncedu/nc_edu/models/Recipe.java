@@ -28,8 +28,10 @@ public class Recipe {
     private Integer cookingTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "cooking_method")
-    private CookingMethod cookingMethod;
+    @ElementCollection(targetClass = CookingMethod.class)
+    @CollectionTable(name = "recipe_cooking_methods", joinColumns = @JoinColumn(name = "recipe_id"))
+    @Column(name = "method")
+    private Set<CookingMethod> cookingMethods;
 
     @Enumerated(EnumType.STRING)
     private Cuisine cuisine;
@@ -68,8 +70,6 @@ public class Recipe {
         ITALIAN,
         JAPANESE;
     }
-
-
 
     @Override
     public boolean equals(Object o) {
