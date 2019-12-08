@@ -37,6 +37,8 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
 
     private Float rating;
 
+    private Integer reviewsNumber;
+
     @Positive(message = "Cooking time must be positive")
     @Size(max = 1440)
     private Integer cookingTime;

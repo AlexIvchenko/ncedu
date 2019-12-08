@@ -24,6 +24,9 @@ public class Recipe {
     private Float rating;
     private Integer price;
 
+    @Column(name = "reviews_number")
+    private Integer reviewsNumber;
+
     @Column(name = "cooking_time")
     private Integer cookingTime;
 
@@ -39,6 +42,9 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "index")
     private List<RecipeStep> steps;
+
+    @OneToMany(mappedBy = "recipe", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<UserReview> reviews;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<IngredientsRecipes> ingredientsRecipes;

@@ -60,6 +60,7 @@ create table if not exists recipes
     fats real,
     carbohydrates real,
     rating real,
+    reviews_number integer,
     owner_id varchar(36)
         constraint recipes_users_id_fk
             references users
