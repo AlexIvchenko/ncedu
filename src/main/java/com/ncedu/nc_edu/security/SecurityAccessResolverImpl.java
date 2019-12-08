@@ -41,7 +41,7 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver{
 
     @Override
     public boolean isSelf(UUID id) {
-        return getUser().getId().equals(id);
+        return getUser() != null && getUser().getId().equals(id);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.ncedu.nc_edu.exceptions;
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,8 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Path;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -26,18 +27,13 @@ import java.util.stream.Collectors;
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.toList());
-
-        JSONObject json = new JSONObject();
-        json.put("error", HttpStatus.BAD_REQUEST.value());
-        json.put("message", String.join(", ", errors));
-
+        List<Map<String, String>> errors = new ArrayList<>();
+        ex.getBindingResult().getFieldErrors().forEach(errorField ->
+                errors.add(Map.of("field", errorField.getField(), "message", errorField.getDefaultMessage())));
+        JSONObject body = new JSONObject();
+        body.put("errors", errors);
         return new ResponseEntity<>(
-                json,
+                body,
                 headers,
                 HttpStatus.BAD_REQUEST
         );
@@ -113,14 +109,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        JSONObject json = new JSONObject();
-        Throwable cause = ex.getMostSpecificCause();
+        JSONObject body = new JSONObject();
+        JSONObject error = new JSONObject();
 
-        json.put("error", HttpStatus.BAD_REQUEST.value());
-        json.put("message", cause.getMessage());
+        error.put("field", ((MismatchedInputException)ex.getCause()).getPath().get(0).getFieldName());
+        error.put("message", "Not a valid value");
+        body.put("errors", Collections.singleton(error));
 
         return new ResponseEntity<>(
-                json,
+                body,
                 new HttpHeaders(),
                 HttpStatus.BAD_REQUEST
         );
