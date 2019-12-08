@@ -1,8 +1,8 @@
 package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
-import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
 import com.ncedu.nc_edu.dto.assemblers.RecipeStepAssembler;
+import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
 import com.ncedu.nc_edu.dto.resources.*;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Recipe;
@@ -129,6 +129,14 @@ public class RecipeController {
             }
         });
 
+        if (recipe.getInfo().getCookingMethods() == null) {
+            throw new RequestParseException("Recipe must contain at least 1 cooking method");
+        } else {
+            if (recipe.getInfo().getCookingMethods().size() == 0) {
+                throw new RequestParseException("Recipe must contain at least 1 cooking method");
+            }
+        }
+
         log.debug(recipe.getInfo().toString());
 
         RecipeResource resource = this.recipeAssembler.toModel(this.recipeService.create(recipe, user));
@@ -206,7 +214,7 @@ public class RecipeController {
             @PathVariable UUID id
     ) {
         User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-        var tmp = this.recipeService.cloneRec(id, user);
+        var tmp = this.recipeService.cloneRecipe(id, user);
         return this.recipeAssembler.toModel(tmp);
     }
 

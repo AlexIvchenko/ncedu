@@ -10,8 +10,6 @@ import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
 import com.ncedu.nc_edu.services.TagService;
-import com.ncedu.nc_edu.statemachine.RecipeState;
-import com.ncedu.nc_edu.statemachine.RecipeStateMachineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+;
+
 @Service
 @Transactional
 @Slf4j
@@ -30,21 +30,17 @@ public class RecipeServiceImpl implements RecipeService {
     private final TagService tagService;
     private final IngredientService ingredientService;
     private final SecurityAccessResolver securityAccessResolver;
-    private final RecipeStateMachineFactory stateMachineFactory;
 
     @Autowired
     public RecipeServiceImpl(
             RecipeRepository recipeRepository,
             TagService tagService,
             IngredientService ingredientService,
-            SecurityAccessResolver securityAccessResolver,
-            RecipeStateMachineFactory stateMachineFactory) {
+            SecurityAccessResolver securityAccessResolver) {
         this.recipeRepository = recipeRepository;
         this.tagService = tagService;
         this.ingredientService = ingredientService;
         this.securityAccessResolver = securityAccessResolver;
-        this.stateMachineFactory = stateMachineFactory;
-
     }
 
     public Page<Recipe> findAll(Pageable pageable) {
@@ -52,11 +48,23 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     public Recipe findById(UUID id) {
-        return this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+        Recipe recipe = this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        if (recipe.getOwner().equals(securityAccessResolver.getUser()) || securityAccessResolver.isModerator()) {
+            return recipe;
+        }
+
+        throw new EntityDoesNotExistsException("Recipe");
     }
 
     public List<Recipe> findByName(String name) {
-        return this.recipeRepository.findByNameContaining(name);
+        List<Recipe> recipes = this.recipeRepository.findByNameContaining(name);
+
+        recipes = recipes.stream().filter(recipe ->
+                recipe.getOwner().equals(securityAccessResolver.getUser()) || securityAccessResolver.isModerator()
+        ).collect(Collectors.toList());
+
+        return recipes;
     }
 
     @Override
@@ -66,7 +74,34 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public void removeById(UUID id) {
-        this.recipeRepository.deleteById(id);
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case CHANGES_NEEDED:
+            case WAITING_FOR_APPROVAL:
+                recipe.setVisible(false);
+                recipe.setState(Recipe.State.DELETED);
+                this.recipeRepository.save(recipe);
+                return;
+
+            case DELETED:
+                throw new EntityDoesNotExistsException("Recipe");
+
+            case EDITED:
+            case PUBLISHED:
+                if (securityAccessResolver.isModerator()) {
+                    recipe.setVisible(false);
+                    recipe.setState(Recipe.State.DELETED);
+                    this.recipeRepository.save(recipe);
+                    return;
+                } else {
+                    throw new EntityDoesNotExistsException("Recipe");
+                }
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
     }
 
     @Override
@@ -76,9 +111,25 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe oldRecipe = this.recipeRepository.findById(resource.getId())
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
-        if (resource.getName() != null) {
-            oldRecipe.setName(resource.getName());
+        switch (oldRecipe.getState()) {
+            case CHANGES_NEEDED:
+            case WAITING_FOR_APPROVAL:
+                return this.updateDirectly(resource, resourceSteps, oldRecipe);
+
+            case DELETED:
+                throw new EntityDoesNotExistsException("Recipe");
+
+            case EDITED:
+            case PUBLISHED:
+                return this.updateWithCloning(resource, resourceSteps, oldRecipe);
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
         }
+    }
+
+    private Recipe updateDirectly(RecipeResource resource, List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
+        oldRecipe.setName(resource.getName());
 
         if (resource.getCalories() != null) {
             oldRecipe.setCalories(resource.getCalories() == 0 ? null : resource.getCalories());
@@ -118,59 +169,87 @@ public class RecipeServiceImpl implements RecipeService {
         }
 
         if (resource.getIngredients() != null) {
-            List<RecipeIngredientResource> recipeIngredientResources = resource.getIngredients();
-            Set<IngredientsRecipes> ingredients = new HashSet<>();
-
-            for (RecipeIngredientResource res : recipeIngredientResources) {
-                Ingredient ingredient = ingredientService.findById(res.getId());
-
-                IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
-                ingredientsRecipes.setIngredient(ingredient);
-                ingredientsRecipes.setRecipe(oldRecipe);
-                ingredientsRecipes.setValue(res.getValue());
-                ingredientsRecipes.setValueType(res.getValueType());
-
-                ingredients.add(ingredientsRecipes);
-            }
-
+            Set<IngredientsRecipes> ingredients = updateRecipeIngredients(resource, oldRecipe);
             oldRecipe.getIngredientsRecipes().retainAll(ingredients);
             oldRecipe.getIngredientsRecipes().addAll(ingredients);
         }
 
         if (resourceSteps != null) {
-            List<RecipeStep> steps = oldRecipe.getSteps();
-            Map<UUID, RecipeStep> stepMap = new LinkedHashMap<>();
-            for (RecipeStep step : steps) {
-                stepMap.put(step.getId(), step);
-            }
-
-            oldRecipe.setSteps(resourceSteps.stream().map(stepResource -> {
-                RecipeStep step;
-                if (stepResource.getId() != null) {
-                    if (stepMap.containsKey(stepResource.getId())) {
-                        step = stepMap.get(stepResource.getId());
-                    } else {
-                        throw new RequestParseException("Invalid step ID");
-                    }
-                } else {
-                    step = new RecipeStep();
-                    step.setId(UUID.randomUUID());
-                    step.setRecipe(oldRecipe);
-                }
-
-                if (stepResource.getDescription() != null) {
-                    step.setDescription(stepResource.getDescription());
-                }
-
-                if (stepResource.getPicture() != null) {
-                    step.setPicture(stepResource.getPicture());
-                }
-
-                return step;
-            }).collect(Collectors.toList()));
+            updateRecipeSteps(resourceSteps, oldRecipe);
         }
 
         return this.recipeRepository.save(oldRecipe);
+    }
+
+    private Recipe updateWithCloning(RecipeResource resource, List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
+        Recipe clonedRecipe;
+
+        if (oldRecipe.getClonedRef() != null) {
+            clonedRecipe = oldRecipe.getClonedRef();
+        } else {
+            assert(oldRecipe.getState() != Recipe.State.EDITED);
+            clonedRecipe = this.cloneRecipe(oldRecipe.getId(), oldRecipe.getOwner());
+        }
+
+        clonedRecipe.setOriginalRef(oldRecipe);
+        oldRecipe.setState(Recipe.State.EDITED);
+        clonedRecipe.setVisible(false);
+
+        this.updateDirectly(resource, resourceSteps, clonedRecipe);
+
+        return this.recipeRepository.save(oldRecipe);
+    }
+
+    private Set<IngredientsRecipes> updateRecipeIngredients(RecipeResource resource, Recipe recipe) {
+        List<RecipeIngredientResource> recipeIngredientResources = resource.getIngredients();
+        Set<IngredientsRecipes> ingredients = new HashSet<>();
+
+        for (RecipeIngredientResource res : recipeIngredientResources) {
+            Ingredient ingredient = ingredientService.findById(res.getId());
+            IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
+
+            ingredientsRecipes.setIngredient(ingredient);
+            ingredientsRecipes.setRecipe(recipe);
+            ingredientsRecipes.setValue(res.getValue());
+            ingredientsRecipes.setValueType(res.getValueType());
+
+            ingredients.add(ingredientsRecipes);
+        }
+
+        return ingredients;
+    }
+
+    private void updateRecipeSteps(List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
+        List<RecipeStep> steps = oldRecipe.getSteps();
+        Map<UUID, RecipeStep> stepMap = new LinkedHashMap<>();
+        for (RecipeStep step : steps) {
+            stepMap.put(step.getId(), step);
+        }
+
+        oldRecipe.setSteps(resourceSteps.stream().map(stepResource -> {
+            RecipeStep step;
+            if (stepResource.getId() != null) {
+                if (stepMap.containsKey(stepResource.getId())) {
+                    step = stepMap.get(stepResource.getId());
+                } else {
+                    throw new RequestParseException("Invalid step ID");
+                }
+            } else {
+                step = new RecipeStep();
+                step.setId(UUID.randomUUID());
+                step.setRecipe(oldRecipe);
+            }
+
+            if (stepResource.getDescription() != null) {
+                step.setDescription(stepResource.getDescription());
+            }
+
+            if (stepResource.getPicture() != null) {
+                step.setPicture(stepResource.getPicture());
+            }
+
+            return step;
+        }).collect(Collectors.toList()));
     }
 
     @Override
@@ -194,7 +273,8 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setPrice(resource.getPrice());
 
         // initial state
-        recipe.setState(RecipeState.WAITING_FOR_APPROVAL);
+        recipe.setState(Recipe.State.WAITING_FOR_APPROVAL);
+        recipe.setVisible(false);
 
         if (resource.getCookingMethods() != null) {
             recipe.setCookingMethods(resource.getCookingMethods());
@@ -203,6 +283,8 @@ public class RecipeServiceImpl implements RecipeService {
         if (resource.getTags() != null) {
             recipe.setTags(resource.getTags().stream()
                     .map(tagService::add).collect(Collectors.toSet()));
+        } else {
+            recipe.setTags(new HashSet<>());
         }
 
         if (steps == null) {
@@ -211,36 +293,23 @@ public class RecipeServiceImpl implements RecipeService {
 
         recipe.setSteps(steps.stream().map(recipeStepResource -> {
             RecipeStep step = new RecipeStep();
+
             step.setId(UUID.randomUUID());
             step.setDescription(recipeStepResource.getDescription());
             step.setPicture(recipeStepResource.getPicture());
             step.setRecipe(recipe);
+
             return step;
         }).collect(Collectors.toList()));
 
-        List<RecipeIngredientResource> recipeIngredientResources = resource.getIngredients();
-        Set<IngredientsRecipes> ingredients = new HashSet<>();
-
-        for (RecipeIngredientResource res : recipeIngredientResources) {
-            Ingredient ingredient = ingredientService.findById(res.getId());
-
-            IngredientsRecipes ingredientsRecipes = new IngredientsRecipes();
-            ingredientsRecipes.setIngredient(ingredient);
-            ingredientsRecipes.setRecipe(recipe);
-            ingredientsRecipes.setValue(res.getValue());
-            ingredientsRecipes.setValueType(res.getValueType());
-
-            ingredients.add(ingredientsRecipes);
-
-        }
-
+        Set<IngredientsRecipes> ingredients = updateRecipeIngredients(resource, recipe);
         recipe.setIngredientsRecipes(ingredients);
 
         return this.recipeRepository.save(recipe);
     }
 
     @Override
-    public Recipe cloneRec(UUID id, User user) {
+    public Recipe cloneRecipe(UUID id, User user) {
         Recipe recipe = new Recipe(this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe")));
         recipe.setOwner(user);

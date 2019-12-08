@@ -23,6 +23,6 @@ public interface RecipeService {
     void removeById(UUID id);
     Recipe update(RecipeWithStepsResource dto);
     Recipe create(RecipeWithStepsResource dto, User owner);
-    Recipe cloneRec(UUID id, User user);
+    Recipe cloneRecipe(UUID id, User user);
     Page<Recipe> search(RecipeSearchCriteria recipeSearchCriteria, Pageable pageable);
 }

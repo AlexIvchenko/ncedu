@@ -48,6 +48,7 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
     private Integer price;
 
     @NotNull
+    @NotEmpty
     private Set<Recipe.CookingMethod> cookingMethods;
 
     @NotNull

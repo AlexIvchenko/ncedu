@@ -1,6 +1,5 @@
 package com.ncedu.nc_edu.models;
 
-import com.ncedu.nc_edu.statemachine.RecipeState;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 
@@ -15,7 +14,8 @@ public class Recipe {
     @Type(type = "uuid-char")
     private UUID id;
 
-    private RecipeState state;
+    @Enumerated(EnumType.STRING)
+    private State state;
 
     private String name;
     private Integer calories;
@@ -69,13 +69,24 @@ public class Recipe {
         MICROWAVE,
         FREEZER,
         STEAMER,
-        STOVE;
+        STOVE
     }
 
     public enum Cuisine {
         RUSSIAN,
         ITALIAN,
-        JAPANESE;
+        JAPANESE
+    }
+
+    public enum State {
+        // UNLISTED:
+        WAITING_FOR_APPROVAL,
+        CHANGES_NEEDED,
+        // PUBLIC:
+        EDITED,
+        PUBLISHED,
+        // ACHIEVED:
+        DELETED
     }
 
     @Column(name = "is_public")
@@ -84,6 +95,12 @@ public class Recipe {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "original_ref", referencedColumnName = "id")
     private Recipe originalRef;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "originalRef")
+    private Recipe clonedRef;
+
+    @Column(name = "moderator_comment")
+    private String moderatorComment;
 
     @Override
     public boolean equals(Object o) {
@@ -117,7 +134,7 @@ public class Recipe {
     public Recipe(Recipe recipe) {
         this.calories = recipe.calories;
         this.carbohydrates = recipe.carbohydrates;
-        this.cookingMethod = recipe.cookingMethod;
+        this.cookingMethods = new HashSet<>(recipe.cookingMethods);
         this.cuisine = recipe.cuisine;
         this.fats = recipe.fats;
         this.cookingTime = recipe.cookingTime;
