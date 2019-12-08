@@ -222,6 +222,14 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
+    public Recipe cloneRec(UUID id, User user) {
+        Recipe receipt = new Recipe(this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Receipt")));
+        receipt.setOwner(user);
+        return this.recipeRepository.save(receipt);
+    }
+
+    @Override
     public Page<Recipe> search(
             RecipeSearchCriteria recipeSearchCriteria,
             Pageable pageable

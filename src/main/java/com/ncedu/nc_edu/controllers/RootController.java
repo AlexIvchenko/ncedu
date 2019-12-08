@@ -30,7 +30,7 @@ public class RootController {
         response.add(linkTo(methodOn(RecipeController.class).getAll(null, null)).withRel("recipes").withType("GET"));
         response.add(linkTo(methodOn(RecipeController.class).search(null, null, null)).withRel("recipe search").withType("GET"));
         if (securityAccessResolver.getUser() == null) {
-            response.add(linkTo(methodOn(UserController.class).add(null, null)).withRel("register").withType("GET"));
+            response.add(linkTo(methodOn(UserController.class).add(null)).withRel("register").withType("GET"));
         } else {
             response.add(linkTo(methodOn(UserController.class).getAuthenticatedUser(null)).withRel("me").withType("GET"));
             if (securityAccessResolver.isModerator()) {

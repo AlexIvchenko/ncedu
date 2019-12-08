@@ -178,6 +178,16 @@ public class RecipeController {
         return paged;
     }
 
+    @PostMapping(value = "/recipes/{id}/clone")
+    public RecipeResource cloneRecipe(
+            Authentication auth,
+            @PathVariable UUID id
+    ) {
+        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
+        var tmp = this.recipeService.cloneRec(id, user);
+        return this.recipeAssembler.toModel(tmp);
+    }
+
     @GetMapping("/recipes/cookingMethods")
     public CollectionModel<String> getAvailableCookingMethods() {
         return new CollectionModel<>(

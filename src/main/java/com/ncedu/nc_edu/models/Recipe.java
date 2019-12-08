@@ -93,7 +93,8 @@ public class Recipe {
         JAPANESE;
     }
 
-    public Recipe() {}
+    public Recipe() {
+    }
 
     public Recipe(Recipe recipe) {
         this.calories = recipe.calories;
@@ -103,26 +104,32 @@ public class Recipe {
         this.fats = recipe.fats;
         this.cookingTime = recipe.cookingTime;
         this.id = UUID.randomUUID();
-        this.ingredientsRecipes = new HashSet<>(recipe.ingredientsRecipes);
-//        this.ingredientsReceiptsDTOs.stream().peek(ingredientsReceipts -> {
-//            ingredientsReceipts.setReceipt(this);
-//            ingredientsReceipts.getId().setReceiptId(this.id);
-//        });
-//        this.ingredientsReceipts.forEach(ingredientsReceipts -> {
-//            ingredientsReceipts.setReceipt(this);
-//            ingredientsReceipts.getId().setReceiptId(this.id);
-//        });
+        this.ingredientsRecipes = new HashSet<>();
+        recipe.ingredientsRecipes.forEach(ingredientsRecipes1 -> {
+            var tempRecipe = new IngredientsRecipes();
+            tempRecipe.setRecipe(this);
+            tempRecipe.setIngredient(ingredientsRecipes1.getIngredient());
+            tempRecipe.setValue(ingredientsRecipes1.getValue());
+            tempRecipe.setValueType(ingredientsRecipes1.getValueType());
+            this.ingredientsRecipes.add(tempRecipe);
+        });
         this.name = recipe.name;
         this.owner = null;
         this.price = recipe.price;
         this.proteins = recipe.proteins;
         this.rating = recipe.rating;
-        this.steps = new ArrayList<>(recipe.steps);
-        //this.steps.stream().peek(receiptStep -> receiptStep.setId(UUID.randomUUID()));
-        //this.steps.forEach(receiptStep -> receiptStep.setId(UUID.randomUUID()));
+        this.steps = new ArrayList<>();
+        recipe.steps.forEach(recipeStep -> {
+            var tempStep = new RecipeStep();
+            tempStep.setId(UUID.randomUUID());
+            tempStep.setRecipe(this);
+            tempStep.setDescription(recipeStep.getDescription());
+            tempStep.setPicture(recipeStep.getPicture());
+            this.steps.add(tempStep);
+        });
         this.tags = new HashSet<>(recipe.tags);
     }
-    
+
     public void setSteps(List<RecipeStep> steps) {
         if (this.steps == null) {
             this.steps = new ArrayList<>();

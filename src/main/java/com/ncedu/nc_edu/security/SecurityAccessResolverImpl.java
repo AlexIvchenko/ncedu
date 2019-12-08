@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Component
-public class SecurityAccessResolverImpl implements SecurityAccessResolver{
+public class SecurityAccessResolverImpl implements SecurityAccessResolver {
     private RecipeRepository recipeRepository;
 
     public SecurityAccessResolverImpl(@Autowired RecipeRepository recipeRepository) {
@@ -31,7 +31,7 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver{
     @Override
     public User getUser() {
         return getAuthorities().contains(UserRoles.ANONYMOUS.getAuthority()) ?
-                null : ((CustomUserDetails)getAuthentication().getPrincipal()).getUser();
+                null : ((CustomUserDetails) getAuthentication().getPrincipal()).getUser();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver{
 
     @Override
     public boolean isSelf(UUID id) {
-        return getUser().getId().equals(id);
+        return getUser() != null && getUser().getId().equals(id);
     }
 
     @Override
