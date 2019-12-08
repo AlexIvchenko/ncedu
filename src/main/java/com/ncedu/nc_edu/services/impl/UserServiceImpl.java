@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -73,8 +74,8 @@ public class UserServiceImpl implements UserService {
         roles.add(role);
         user.setRoles(roles);
 
-        //user.setCategories(this.getDefaultItemCategories().stream()
-        //        .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
+//        user.setCategories(this.getDefaultItemCategories().stream()
+//                .peek(itemCategory -> itemCategory.setOwner(user)).collect(Collectors.toList()));
 
         return userRepository.save(user);
     }
