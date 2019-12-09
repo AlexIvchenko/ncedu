@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +57,8 @@ public class RecipeController {
     @GetMapping("/recipes")
     public PagedModel getAll(
             Authentication auth,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
         Page<Recipe> page = this.recipeService.findAll(pageable);
 
@@ -66,6 +68,54 @@ public class RecipeController {
         ));
 
         paged.add(linkTo(methodOn(RecipeController.class).create(auth, null)).withRel("create"));
+
+        if (page.getTotalPages() != 0) {
+            String queryString = request.getQueryString();
+            queryString = "?" + queryString;
+
+            if (queryString.length() != 1) {
+                queryString += "&";
+            }
+
+            if (page.hasNext()) {
+                String next = "page=" + (page.getNumber() + 1) + "&size=" + page.getSize();
+                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                        null, null))
+                        .slash(queryString + next)
+                        .withRel("next"));
+            }
+
+            if (page.hasPrevious()) {
+                String prev = "page=" + (page.getNumber() - 1) + "&size=" + page.getSize();
+                if (!queryString.endsWith("&"))
+                    queryString += "&";
+
+                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                        null, null))
+                        .slash(queryString + prev)
+                        .withRel("prev"));
+            }
+
+            if (!queryString.endsWith("&"))
+                queryString += "&";
+            String first = "page=0&size=" + page.getSize();
+
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + first)
+                    .withRel("first"));
+
+
+            if (!queryString.endsWith("&"))
+                queryString += "&";
+            String last = "page=" + (page.getTotalPages() - 1) + "&size=" + page.getSize();
+
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + last)
+                    .withRel("last"));
+        }
+
 
         return paged;
     }
@@ -184,14 +234,15 @@ public class RecipeController {
     public PagedModel search(
             Authentication auth,
             @Valid RecipeSearchCriteria recipeSearchCriteria,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
         if (recipeSearchCriteria == null) {
-            return this.getAll(auth, pageable);
+            return this.getAll(auth, pageable, request);
         }
 
         if (!recipeSearchCriteria.hasAnyCriteria()) {
-            return this.getAll(auth, pageable);
+            return this.getAll(auth, pageable, request);
         }
 
         Page<Recipe> page = recipeService.search(recipeSearchCriteria, pageable);
@@ -201,9 +252,52 @@ public class RecipeController {
                                 page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages())
         );
 
-//        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.next())).withRel("next"));
-//        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.previousOrFirst())).withRel("prev"));
-//        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.first())).withRel("first"));
+        if (page.getTotalPages() != 0) {
+            String queryString = request.getQueryString();
+            queryString = "?" + queryString;
+
+            if (queryString.length() != 1) {
+                queryString += "&";
+            }
+
+            if (page.hasNext()) {
+                String next = "page=" + (page.getNumber() + 1) + "&size=" + page.getSize();
+                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                        null, null))
+                        .slash(queryString + next)
+                        .withRel("next"));
+            }
+
+            if (page.hasPrevious()) {
+                String prev = "page=" + (page.getNumber() - 1) + "&size=" + page.getSize();
+                if (!queryString.endsWith("&"))
+                    queryString += "&";
+
+                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                        null, null))
+                        .slash(queryString + prev)
+                        .withRel("prev"));
+            }
+
+            if (!queryString.endsWith("&"))
+                queryString += "&";
+            String first = "page=0&size=" + page.getSize();
+
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + first)
+                    .withRel("first"));
+
+
+            if (!queryString.endsWith("&"))
+                queryString += "&";
+            String last = "page=" + (page.getTotalPages() - 1) + "&size=" + page.getSize();
+
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + last)
+                    .withRel("last"));
+        }
 
         return paged;
     }
