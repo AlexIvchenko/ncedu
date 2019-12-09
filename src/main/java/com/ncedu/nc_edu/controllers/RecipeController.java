@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.EmbeddedWrapper;
@@ -55,69 +56,21 @@ public class RecipeController {
     }
 
     @GetMapping("/recipes")
-    public PagedModel getAll(
+    public PagedModel<EntityModel<RecipeResource>> getAll(
             Authentication auth,
             Pageable pageable,
             HttpServletRequest request
     ) {
         Page<Recipe> page = this.recipeService.findAll(pageable);
 
-        PagedModel paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
+        PagedModel<EntityModel<RecipeResource>> paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
                 .collect(Collectors.toList()), new PagedModel.PageMetadata(
                 page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
         ));
 
         paged.add(linkTo(methodOn(RecipeController.class).create(auth, null)).withRel("create"));
 
-        if (page.getTotalPages() != 0) {
-            String queryString = request.getQueryString();
-            queryString = "?" + queryString;
-
-            if (queryString.length() != 1) {
-                queryString += "&";
-            }
-
-            if (page.hasNext()) {
-                String next = "page=" + (page.getNumber() + 1) + "&size=" + page.getSize();
-                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                        null, null))
-                        .slash(queryString + next)
-                        .withRel("next"));
-            }
-
-            if (page.hasPrevious()) {
-                String prev = "page=" + (page.getNumber() - 1) + "&size=" + page.getSize();
-                if (!queryString.endsWith("&"))
-                    queryString += "&";
-
-                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                        null, null))
-                        .slash(queryString + prev)
-                        .withRel("prev"));
-            }
-
-            if (!queryString.endsWith("&"))
-                queryString += "&";
-            String first = "page=0&size=" + page.getSize();
-
-            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                    null, null))
-                    .slash(queryString + first)
-                    .withRel("first"));
-
-
-            if (!queryString.endsWith("&"))
-                queryString += "&";
-            String last = "page=" + (page.getTotalPages() - 1) + "&size=" + page.getSize();
-
-            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                    null, null))
-                    .slash(queryString + last)
-                    .withRel("last"));
-        }
-
-
-        return paged;
+        return addPageLinks(request, page, paged);
     }
 
     @GetMapping(value = "/recipes/{id}")
@@ -128,7 +81,7 @@ public class RecipeController {
 
     @GetMapping(value = "/recipes/{id}/reviews")
     public ResponseEntity<CollectionModel<UserReviewResource>> getReviews(@PathVariable UUID id) {
-        CollectionModel resource = userReviewAssembler.toCollectionModel(recipeService.findReviewsById(id));
+        CollectionModel<UserReviewResource> resource = userReviewAssembler.toCollectionModel(recipeService.findReviewsById(id));
         return ResponseEntity.ok(resource);
     }
 
@@ -216,9 +169,7 @@ public class RecipeController {
 
         recipe.getInfo().setId(id);
 
-        RecipeResource updatedResource = this.recipeAssembler.toModel(this.recipeService.update(recipe));
-
-        return updatedResource;
+        return this.recipeAssembler.toModel(this.recipeService.update(recipe));
     }
 
     @DeleteMapping(value = "/recipes/{id}")
@@ -231,7 +182,7 @@ public class RecipeController {
     }
 
     @GetMapping(value = "/recipes/search")
-    public PagedModel search(
+    public PagedModel<EntityModel<RecipeResource>> search(
             Authentication auth,
             @Valid RecipeSearchCriteria recipeSearchCriteria,
             Pageable pageable,
@@ -247,57 +198,67 @@ public class RecipeController {
 
         Page<Recipe> page = recipeService.search(recipeSearchCriteria, pageable);
 
-        PagedModel paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
+        PagedModel<EntityModel<RecipeResource>> paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
                         .collect(Collectors.toList()), new PagedModel.PageMetadata(
                                 page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages())
         );
 
-        if (page.getTotalPages() != 0) {
-            String queryString = request.getQueryString();
-            queryString = "?" + queryString;
+        return addPageLinks(request, page, paged);
+    }
 
-            if (queryString.length() != 1) {
-                queryString += "&";
-            }
-
-            if (page.hasNext()) {
-                String next = "page=" + (page.getNumber() + 1) + "&size=" + page.getSize();
-                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                        null, null))
-                        .slash(queryString + next)
-                        .withRel("next"));
-            }
-
-            if (page.hasPrevious()) {
-                String prev = "page=" + (page.getNumber() - 1) + "&size=" + page.getSize();
-                if (!queryString.endsWith("&"))
-                    queryString += "&";
-
-                paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                        null, null))
-                        .slash(queryString + prev)
-                        .withRel("prev"));
-            }
-
-            if (!queryString.endsWith("&"))
-                queryString += "&";
-            String first = "page=0&size=" + page.getSize();
-
-            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                    null, null))
-                    .slash(queryString + first)
-                    .withRel("first"));
-
-
-            if (!queryString.endsWith("&"))
-                queryString += "&";
-            String last = "page=" + (page.getTotalPages() - 1) + "&size=" + page.getSize();
-
-            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
-                    null, null))
-                    .slash(queryString + last)
-                    .withRel("last"));
+    private PagedModel<EntityModel<RecipeResource>> addPageLinks(HttpServletRequest request, Page<Recipe> page,
+                                                                 PagedModel<EntityModel<RecipeResource>> paged
+    ) {
+        if (page.getTotalPages() == 0) {
+            return paged;
         }
+
+        String queryString = request.getQueryString();
+        queryString = "?" + queryString;
+
+        if (queryString.length() != 1) {
+            queryString += "&";
+        }
+
+        if (page.hasNext()) {
+            String next = "page=" + (page.getNumber() + 1) + "&size=" + page.getSize();
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + next)
+                    .withRel("next"));
+        }
+
+        if (page.hasPrevious()) {
+            String prev = "page=" + (page.getNumber() - 1) + "&size=" + page.getSize();
+            if (!queryString.endsWith("&"))
+                queryString += "&";
+
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + prev)
+                    .withRel("prev"));
+        }
+
+        if (!queryString.endsWith("&"))
+            queryString += "&";
+
+        String first = "page=0&size=" + page.getSize();
+
+        paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                null, null))
+                .slash(queryString + first)
+                .withRel("first"));
+
+
+        if (!queryString.endsWith("&"))
+            queryString += "&";
+
+        String last = "page=" + (page.getTotalPages() - 1) + "&size=" + page.getSize();
+
+        paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                null, null))
+                .slash(queryString + last)
+                .withRel("last"));
 
         return paged;
     }
