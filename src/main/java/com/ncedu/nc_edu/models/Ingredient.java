@@ -32,6 +32,6 @@ public class Ingredient extends RepresentationModel<Ingredient> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), id);
+        return Objects.hash(this.getId());
     }
 }
