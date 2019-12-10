@@ -40,7 +40,7 @@ public class UserResource extends RepresentationModel<UserResource> implements O
 
     @JsonView(View.Owner.class)
     @Past(message = "Birthday must be in the past")
-    @JsonFormat(pattern = "dd.MM.yyyy")
+    //@JsonFormat(pattern = "dd.MM.yyyy")
     private Date birthday;
 
     @JsonView(View.Owner.class)
