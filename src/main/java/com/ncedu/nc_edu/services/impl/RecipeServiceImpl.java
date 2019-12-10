@@ -56,6 +56,10 @@ public class RecipeServiceImpl implements RecipeService {
             return recipe;
         }
 
+        if (recipe.isVisible()) {
+            return recipe;
+        }
+
         throw new EntityDoesNotExistsException("Recipe");
     }
 
