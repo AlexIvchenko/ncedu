@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.ncedu.nc_edu.models.Recipe.State.*;
+
 ;
 
 @Service
@@ -73,7 +75,7 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public void removeById(UUID id) {
+    public boolean removeById(UUID id) {
         Recipe recipe = this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
@@ -83,21 +85,197 @@ public class RecipeServiceImpl implements RecipeService {
                 recipe.setVisible(false);
                 recipe.setState(Recipe.State.DELETED);
                 this.recipeRepository.save(recipe);
-                return;
+                return true;
 
             case DELETED:
                 throw new EntityDoesNotExistsException("Recipe");
 
             case EDITED:
+                if (securityAccessResolver.isModerator()) {
+                    return false;
+                } else {
+                    throw new EntityDoesNotExistsException("Recipe");
+                }
+
             case PUBLISHED:
                 if (securityAccessResolver.isModerator()) {
                     recipe.setVisible(false);
                     recipe.setState(Recipe.State.DELETED);
                     this.recipeRepository.save(recipe);
-                    return;
+                    return true;
                 } else {
                     throw new EntityDoesNotExistsException("Recipe");
                 }
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    @Override
+    public boolean moderatorApprove(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case WAITING_FOR_APPROVAL:
+                this.approveWaitingForApprovalRecipe(recipe);
+                return true;
+
+            case EDITED:
+                this.approveEditedRecipe(recipe);
+                return true;
+
+            case CHANGES_NEEDED:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    // Merge cloned with changes into original and delete cloned
+    private void approveEditedRecipe(Recipe recipe) {
+        Recipe editedRecipe = recipe.getClonedRef();
+
+        recipe.setVisible(true);
+        recipe.setClonedRef(null);
+        recipe.setState(PUBLISHED);
+        recipe.setCalories(editedRecipe.getCalories());
+        recipe.setCarbohydrates(editedRecipe.getCarbohydrates());
+        recipe.setCookingTime(editedRecipe.getCookingTime());
+        recipe.setCuisine(editedRecipe.getCuisine());
+        recipe.setFats(editedRecipe.getFats());
+        recipe.setProteins(editedRecipe.getProteins());
+        recipe.setPrice(editedRecipe.getPrice());
+        recipe.setName(editedRecipe.getName());
+
+        recipe.setTags(new HashSet<>(editedRecipe.getTags()));
+        recipe.setCookingMethods(new HashSet<>(editedRecipe.getCookingMethods()));
+
+        List<RecipeStep> steps = new ArrayList<>();
+        recipe.removeSteps();
+
+        editedRecipe.getSteps().forEach(recipeStep -> {
+            RecipeStep tempStep = new RecipeStep();
+            tempStep.setId(UUID.randomUUID());
+            tempStep.setRecipe(recipe);
+            tempStep.setDescription(recipeStep.getDescription());
+            tempStep.setPicture(recipeStep.getPicture());
+            steps.add(tempStep);
+        });
+
+        recipe.setSteps(steps);
+
+        Set<IngredientsRecipes> ingredientsRecipes = new HashSet<>();
+
+        editedRecipe.getIngredientsRecipes().forEach(ingredientsRecipes1 -> {
+            Ingredient ingredient = ingredientService.findById(ingredientsRecipes1.getIngredient().getId());
+            IngredientsRecipes temp = new IngredientsRecipes();
+
+            temp.setIngredient(ingredient);
+            temp.setRecipe(recipe);
+            temp.setValue(ingredientsRecipes1.getValue());
+            temp.setValueType(ingredientsRecipes1.getValueType());
+
+            ingredientsRecipes.add(temp);
+        });
+
+        recipe.getIngredientsRecipes().retainAll(ingredientsRecipes);
+        recipe.getIngredientsRecipes().addAll(ingredientsRecipes);
+
+        //recipe.setIngredientsRecipes(ingredientsRecipes);
+
+        this.recipeRepository.delete(editedRecipe);
+    }
+
+    private void approveWaitingForApprovalRecipe(Recipe recipe) {
+        recipe.setVisible(true);
+        recipe.setModeratorComment("");
+        recipe.setState(PUBLISHED);
+        this.recipeRepository.save(recipe);
+    }
+
+    @Override
+    public boolean moderatorDecline(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case WAITING_FOR_APPROVAL:
+                return this.removeById(recipe.getId());
+
+            case EDITED:
+                this.declineEditedChanges(recipe);
+                return true;
+
+
+            case CHANGES_NEEDED:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    private void declineEditedChanges(Recipe recipe) {
+        Recipe editedRecipe = recipe.getClonedRef();
+
+        recipe.setState(PUBLISHED);
+        recipe.setClonedRef(null);
+
+        this.recipeRepository.delete(editedRecipe);
+        this.recipeRepository.save(recipe);
+    }
+
+    @Override
+    public boolean moderatorRequestForChanges(UUID id, String message) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case WAITING_FOR_APPROVAL:
+            case CHANGES_NEEDED:
+                recipe.setModeratorComment(message);
+                recipe.setState(CHANGES_NEEDED);
+                this.recipeRepository.save(recipe);
+                return true;
+
+            case EDITED:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    @Override
+    public boolean moderatorCloneChanges(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case EDITED:
+                recipe.setState(PUBLISHED);
+                Recipe editedRecipe = recipe.getClonedRef();
+                recipe.setClonedRef(null);
+                editedRecipe.setState(PUBLISHED);
+                editedRecipe.setVisible(true);
+                this.recipeRepository.save(recipe);
+                this.recipeRepository.save(editedRecipe);
+                return true;
+
+            case CHANGES_NEEDED:
+            case WAITING_FOR_APPROVAL:
+            case DELETED:
+            case PUBLISHED:
+                return false;
 
             default:
                 throw new RuntimeException("Reached unreachable statement");
@@ -113,6 +291,9 @@ public class RecipeServiceImpl implements RecipeService {
 
         switch (oldRecipe.getState()) {
             case CHANGES_NEEDED:
+                oldRecipe.setState(WAITING_FOR_APPROVAL);
+                return this.updateDirectly(resource, resourceSteps, oldRecipe);
+
             case WAITING_FOR_APPROVAL:
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
@@ -271,6 +452,7 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setCuisine(resource.getCuisine());
         recipe.setCookingTime(resource.getCookingTime());
         recipe.setPrice(resource.getPrice());
+        recipe.setReviewsNumber(0);
 
         // initial state
         recipe.setState(Recipe.State.WAITING_FOR_APPROVAL);

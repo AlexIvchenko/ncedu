@@ -92,7 +92,7 @@ public class Recipe {
     @Column(name = "is_public")
     private boolean visible;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "original_ref", referencedColumnName = "id")
     private Recipe originalRef;
 
@@ -105,14 +105,14 @@ public class Recipe {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Recipe)) return false;
         Recipe recipe = (Recipe) o;
-        return id.equals(recipe.id);
+        return this.getId().equals(recipe.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(this.getId());
     }
 
     @Override
@@ -170,9 +170,25 @@ public class Recipe {
             this.steps = new ArrayList<>();
         }
 
-        this.steps.clear();
-        if (steps != null) {
-            this.steps.addAll(steps);
+        this.removeSteps();
+
+        this.steps.addAll(steps);
+    }
+
+    public void removeSteps() {
+        for (Iterator<RecipeStep> iterator = steps.iterator(); iterator.hasNext();) {
+            RecipeStep cur = iterator.next();
+            cur.setRecipe(null);
+            iterator.remove();
+        }
+    }
+
+    public void removeIngredientsRecipes() {
+        for (Iterator<IngredientsRecipes> iterator = ingredientsRecipes.iterator(); iterator.hasNext();) {
+            IngredientsRecipes cur = iterator.next();
+            cur.setIngredient(null);
+            cur.setRecipe(null);
+            iterator.remove();
         }
     }
 }

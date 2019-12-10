@@ -58,6 +58,8 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
 
     private List<RecipeIngredientResource> ingredients;
 
+    private String moderatorComment;
+
     /**
      * Field only for returning. Should be never updated.
      */
