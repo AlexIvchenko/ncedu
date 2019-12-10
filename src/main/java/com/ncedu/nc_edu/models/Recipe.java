@@ -14,6 +14,9 @@ public class Recipe {
     @Type(type = "uuid-char")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
+    private State state;
+
     private String name;
     private Integer calories;
     private Float proteins;
@@ -29,8 +32,10 @@ public class Recipe {
     private Integer cookingTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "cooking_method")
-    private CookingMethod cookingMethod;
+    @ElementCollection(targetClass = CookingMethod.class)
+    @CollectionTable(name = "recipe_cooking_methods", joinColumns = @JoinColumn(name = "recipe_id"))
+    @Column(name = "method")
+    private Set<CookingMethod> cookingMethods;
 
     @Enumerated(EnumType.STRING)
     private Cuisine cuisine;
@@ -55,6 +60,47 @@ public class Recipe {
 
     @ManyToOne
     private User owner;
+
+    public enum CookingMethod {
+        OVEN,
+        BLENDER,
+        GRILL,
+        WOK,
+        MICROWAVE,
+        FREEZER,
+        STEAMER,
+        STOVE
+    }
+
+    public enum Cuisine {
+        RUSSIAN,
+        ITALIAN,
+        JAPANESE
+    }
+
+    public enum State {
+        // UNLISTED:
+        WAITING_FOR_APPROVAL,
+        CHANGES_NEEDED,
+        // PUBLIC:
+        EDITED,
+        PUBLISHED,
+        // ACHIEVED:
+        DELETED
+    }
+
+    @Column(name = "is_public")
+    private boolean visible;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "original_ref", referencedColumnName = "id")
+    private Recipe originalRef;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "originalRef")
+    private Recipe clonedRef;
+
+    @Column(name = "moderator_comment")
+    private String moderatorComment;
 
     @Override
     public boolean equals(Object o) {
@@ -82,21 +128,41 @@ public class Recipe {
                 '}';
     }
 
-    public enum CookingMethod {
-        OVEN,
-        BLENDER,
-        GRILL,
-        WOK,
-        MICROWAVE,
-        FREEZER,
-        STEAMER,
-        STOVE;
+    public Recipe() {
     }
 
-    public enum Cuisine {
-        RUSSIAN,
-        ITALIAN,
-        JAPANESE;
+    public Recipe(Recipe recipe) {
+        this.calories = recipe.calories;
+        this.carbohydrates = recipe.carbohydrates;
+        this.cookingMethods = new HashSet<>(recipe.cookingMethods);
+        this.cuisine = recipe.cuisine;
+        this.fats = recipe.fats;
+        this.cookingTime = recipe.cookingTime;
+        this.id = UUID.randomUUID();
+        this.ingredientsRecipes = new HashSet<>();
+        recipe.ingredientsRecipes.forEach(ingredientsRecipes1 -> {
+            var tempRecipe = new IngredientsRecipes();
+            tempRecipe.setRecipe(this);
+            tempRecipe.setIngredient(ingredientsRecipes1.getIngredient());
+            tempRecipe.setValue(ingredientsRecipes1.getValue());
+            tempRecipe.setValueType(ingredientsRecipes1.getValueType());
+            this.ingredientsRecipes.add(tempRecipe);
+        });
+        this.name = recipe.name;
+        this.owner = null;
+        this.price = recipe.price;
+        this.proteins = recipe.proteins;
+        this.rating = recipe.rating;
+        this.steps = new ArrayList<>();
+        recipe.steps.forEach(recipeStep -> {
+            var tempStep = new RecipeStep();
+            tempStep.setId(UUID.randomUUID());
+            tempStep.setRecipe(this);
+            tempStep.setDescription(recipeStep.getDescription());
+            tempStep.setPicture(recipeStep.getPicture());
+            this.steps.add(tempStep);
+        });
+        this.tags = new HashSet<>(recipe.tags);
     }
 
     public void setSteps(List<RecipeStep> steps) {

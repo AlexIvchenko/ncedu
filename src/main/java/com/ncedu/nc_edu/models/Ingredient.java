@@ -25,10 +25,9 @@ public class Ingredient extends RepresentationModel<Ingredient> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (!(o instanceof Ingredient)) return false;
         Ingredient that = (Ingredient) o;
-        return id.equals(that.id);
+        return this.getId().equals(that.getId());
     }
 
     @Override

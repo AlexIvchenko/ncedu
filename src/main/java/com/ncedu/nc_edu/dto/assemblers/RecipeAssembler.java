@@ -19,15 +19,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe, RecipeResource> {
     private final SecurityAccessResolver securityAccessResolver;
-    private final IngredientAssembler ingredientAssembler;
     private final RecipeIngredientAssembler recipeIngredientAssembler;
 
     public RecipeAssembler(@Autowired SecurityAccessResolver securityAccessResolver,
-                            @Autowired IngredientAssembler ingredientAssembler,
                            @Autowired RecipeIngredientAssembler recipeIngredientAssembler) {
         super(Recipe.class, RecipeResource.class);
         this.securityAccessResolver = securityAccessResolver;
-        this.ingredientAssembler = ingredientAssembler;
         this.recipeIngredientAssembler = recipeIngredientAssembler;
     }
 
@@ -45,8 +42,9 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.setRating(entity.getRating());
         resource.setCookingTime(entity.getCookingTime());
         resource.setPrice(entity.getPrice());
-        resource.setCookingMethod(entity.getCookingMethod().toString());
-        resource.setCuisine(entity.getCuisine().toString());
+        resource.setCookingMethods(entity.getCookingMethods());
+        resource.setCuisine(entity.getCuisine());
+        resource.setOwner(entity.getOwner().getId());
         resource.setReviewsNumber(entity.getReviewsNumber());
 
         resource.setTags(entity.getTags().stream()
