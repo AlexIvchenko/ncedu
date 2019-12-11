@@ -29,9 +29,9 @@ public class RecipeStep {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof RecipeStep)) return false;
         RecipeStep that = (RecipeStep) o;
-        return id.equals(that.id);
+        return getId().equals(that.getId());
     }
 
     @Override

@@ -13,6 +13,5 @@ public class RecipeStepResource extends RepresentationModel<RecipeStepResource> 
 
     private String description;
 
-    // todo replace to link for object storage
     private UUID picture;
 }

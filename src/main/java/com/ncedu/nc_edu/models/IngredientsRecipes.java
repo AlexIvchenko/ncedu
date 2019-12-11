@@ -36,7 +36,7 @@ public class IngredientsRecipes {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof IngredientsRecipes)) return false;
         IngredientsRecipes that = (IngredientsRecipes) o;
         return ingredient.equals(that.ingredient) &&
                 recipe.equals(that.recipe);

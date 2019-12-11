@@ -1,7 +1,9 @@
 package com.ncedu.nc_edu.dto.resources;
 
-import com.ncedu.nc_edu.dto.validators.ValueOfEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ncedu.nc_edu.models.Recipe;
+import com.ncedu.nc_edu.security.View;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.hateoas.RepresentationModel;
@@ -13,7 +15,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RecipeResource extends RepresentationModel<RecipeResource> {
+public class RecipeResource extends RepresentationModel<RecipeResource> implements OwnableResource {
     private UUID id;
 
     @NotBlank(message = "Name cannot be empty")
@@ -38,6 +40,8 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
 
     private Float rating;
 
+    private Integer reviewsNumber;
+
     @Positive(message = "Cooking time must be positive")
     @Size(max = 1440)
     private Integer cookingTime;
@@ -47,21 +51,32 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
     private Integer price;
 
     @NotNull
-    @ValueOfEnum(value = Recipe.CookingMethod.class, message = "Cooking method must be any of " +
-            "OVEN|BLENDER|GRILL|WOK|MICROWAVE|FREEZER|STEAMER|STOVE")
-    private String cookingMethod;
+    @NotEmpty
+    private Set<Recipe.CookingMethod> cookingMethods;
 
     @NotNull
-    @ValueOfEnum(value = Recipe.Cuisine.class, message = "Cuisine must be any of " +
-            "RUSSIAN|ITALIAN|JAPANESE")
-    private String cuisine;
+    private Recipe.Cuisine cuisine;
 
     private Set<String> tags;
 
     private List<RecipeIngredientResource> ingredients;
 
+    private String moderatorComment;
+
     /**
      * Field only for returning. Should be never updated.
      */
-    //private UUID owner;
+    private UUID owner;
+
+    @JsonView({View.Owner.class, View.Moderator.class})
+    private String state;
+
+    @JsonView({View.Owner.class, View.Moderator.class})
+    private Boolean isEditedClone;
+
+    @Override
+    @JsonIgnore
+    public UUID getOwnerId() {
+        return this.owner;
+    }
 }

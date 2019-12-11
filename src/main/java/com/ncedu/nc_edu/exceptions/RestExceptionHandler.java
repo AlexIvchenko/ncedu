@@ -7,7 +7,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,6 +37,30 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         JSONObject json = new JSONObject();
         json.put("error", HttpStatus.BAD_REQUEST.value());
         json.put("message", String.join(", ", errors));
+
+        return new ResponseEntity<>(
+                json,
+                headers,
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleBindException(BindException ex,
+                                                         HttpHeaders headers,
+                                                         HttpStatus status,
+                                                         WebRequest request
+    ) {
+        JSONObject json = new JSONObject();
+        json.put("error", HttpStatus.BAD_REQUEST.value());
+
+        List<FieldError> errors = ex.getFieldErrors();
+        List<String> messages = new ArrayList<>();
+        for (FieldError error : errors) {
+            messages.add(error.getField() + " cannot be " + error.getRejectedValue());
+        }
+
+        json.put("messages", messages);
 
         return new ResponseEntity<>(
                 json,

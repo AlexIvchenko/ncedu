@@ -2,10 +2,8 @@ package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
 import com.ncedu.nc_edu.dto.assemblers.RecipeStepAssembler;
-import com.ncedu.nc_edu.dto.resources.RecipeResource;
-import com.ncedu.nc_edu.dto.resources.RecipeSearchCriteria;
-import com.ncedu.nc_edu.dto.resources.RecipeStepResource;
-import com.ncedu.nc_edu.dto.resources.RecipeWithStepsResource;
+import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
+import com.ncedu.nc_edu.dto.resources.*;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.User;
@@ -16,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.EmbeddedWrapper;
 import org.springframework.hateoas.server.core.EmbeddedWrappers;
 import org.springframework.http.HttpStatus;
@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
@@ -39,39 +40,74 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class RecipeController {
     private final RecipeService recipeService;
     private final RecipeAssembler recipeAssembler;
+    private final UserReviewAssembler userReviewAssembler;
     private final RecipeStepAssembler recipeStepAssembler;
 
     public RecipeController(
             @Autowired RecipeService recipeService,
             @Autowired RecipeAssembler recipeAssembler,
+            @Autowired UserReviewAssembler userReviewAssembler,
             @Autowired RecipeStepAssembler recipeStepAssembler
     ) {
         this.recipeService = recipeService;
         this.recipeAssembler = recipeAssembler;
+        this.userReviewAssembler = userReviewAssembler;
         this.recipeStepAssembler = recipeStepAssembler;
     }
 
     @GetMapping("/recipes")
-    public PagedModel getAll(
+    public PagedModel<EntityModel<RecipeResource>> getAll(
             Authentication auth,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
         Page<Recipe> page = this.recipeService.findAll(pageable);
 
-        PagedModel paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
+        PagedModel<EntityModel<RecipeResource>> paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
                 .collect(Collectors.toList()), new PagedModel.PageMetadata(
                 page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages()
         ));
 
         paged.add(linkTo(methodOn(RecipeController.class).create(auth, null)).withRel("create"));
 
-        return paged;
+        return addPageLinks(request, page, paged);
     }
 
     @GetMapping(value = "/recipes/{id}")
     public RecipeResource getById(Authentication auth, @PathVariable UUID id) {
         RecipeResource resource = this.recipeAssembler.toModel(this.recipeService.findById(id));
         return resource;
+    }
+
+    @GetMapping(value = "/recipes/{id}/reviews")
+    public ResponseEntity<CollectionModel<UserReviewResource>> getReviews(@PathVariable UUID id) {
+        CollectionModel<UserReviewResource> resource = userReviewAssembler.toCollectionModel(recipeService.findReviewsById(id));
+        return ResponseEntity.ok(resource);
+    }
+
+    @PostMapping(value = "/recipes/{id}/reviews")
+    public ResponseEntity<RepresentationModel<UserReviewResource>> addReview(@PathVariable UUID id,
+                                                                  @RequestBody UserReviewResource reviewResource) {
+        UserReviewResource resource = userReviewAssembler.toModel(recipeService.addReview(id, reviewResource));
+        return ResponseEntity.ok(resource);
+    }
+
+    @GetMapping(value = "/recipes/{id}/reviews/{reviewId}")
+    public ResponseEntity<RepresentationModel<UserReviewResource>> getReviews(@PathVariable UUID id,
+                                                                          @PathVariable UUID reviewId) {
+        UserReviewResource resource = userReviewAssembler.toModel(recipeService.findReviewByIds(id, reviewId));
+        return ResponseEntity.ok(resource);
+    }
+
+    @PutMapping(value = "/recipes/{id}/requestForApproval")
+    public ResponseEntity<Void> requestForApproval(@PathVariable UUID id) {
+        boolean status = this.recipeService.requestForApproval(id);
+
+        if (status) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping(value = "/recipes/{id}/steps")
@@ -107,6 +143,14 @@ public class RecipeController {
             }
         });
 
+        if (recipe.getInfo().getCookingMethods() == null) {
+            throw new RequestParseException("Recipe must contain at least 1 cooking method");
+        } else {
+            if (recipe.getInfo().getCookingMethods().size() == 0) {
+                throw new RequestParseException("Recipe must contain at least 1 cooking method");
+            }
+        }
+
         log.debug(recipe.getInfo().toString());
 
         RecipeResource resource = this.recipeAssembler.toModel(this.recipeService.create(recipe, user));
@@ -136,9 +180,7 @@ public class RecipeController {
 
         recipe.getInfo().setId(id);
 
-        RecipeResource updatedResource = this.recipeAssembler.toModel(this.recipeService.update(recipe));
-
-        return updatedResource;
+        return this.recipeAssembler.toModel(this.recipeService.update(recipe));
     }
 
     @DeleteMapping(value = "/recipes/{id}")
@@ -151,31 +193,95 @@ public class RecipeController {
     }
 
     @GetMapping(value = "/recipes/search")
-    public PagedModel search(
+    public PagedModel<EntityModel<RecipeResource>> search(
             Authentication auth,
             @Valid RecipeSearchCriteria recipeSearchCriteria,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
         if (recipeSearchCriteria == null) {
-            return this.getAll(auth, pageable);
+            return this.getAll(auth, pageable, request);
         }
 
         if (!recipeSearchCriteria.hasAnyCriteria()) {
-            return this.getAll(auth, pageable);
+            return this.getAll(auth, pageable, request);
         }
 
         Page<Recipe> page = recipeService.search(recipeSearchCriteria, pageable);
 
-        PagedModel paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
+        PagedModel<EntityModel<RecipeResource>> paged = PagedModel.wrap(page.getContent().stream().map(recipeAssembler::toModel)
                         .collect(Collectors.toList()), new PagedModel.PageMetadata(
                                 page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages())
         );
 
-//        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.next())).withRel("next"));
-//        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.previousOrFirst())).withRel("prev"));
-//        resource.add(linkTo(methodOn(RecipeController.class).search(auth, recipeSearchCriteria, pageable.first())).withRel("first"));
+        return addPageLinks(request, page, paged);
+    }
+
+    private PagedModel<EntityModel<RecipeResource>> addPageLinks(HttpServletRequest request, Page<Recipe> page,
+                                                                 PagedModel<EntityModel<RecipeResource>> paged
+    ) {
+        if (page.getTotalPages() == 0) {
+            return paged;
+        }
+
+        String queryString = request.getQueryString();
+        queryString = "?" + queryString;
+
+        if (queryString.length() != 1) {
+            queryString += "&";
+        }
+
+        if (page.hasNext()) {
+            String next = "page=" + (page.getNumber() + 1) + "&size=" + page.getSize();
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + next)
+                    .withRel("next"));
+        }
+
+        if (page.hasPrevious()) {
+            String prev = "page=" + (page.getNumber() - 1) + "&size=" + page.getSize();
+            if (!queryString.endsWith("&"))
+                queryString += "&";
+
+            paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                    null, null))
+                    .slash(queryString + prev)
+                    .withRel("prev"));
+        }
+
+        if (!queryString.endsWith("&"))
+            queryString += "&";
+
+        String first = "page=0&size=" + page.getSize();
+
+        paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                null, null))
+                .slash(queryString + first)
+                .withRel("first"));
+
+
+        if (!queryString.endsWith("&"))
+            queryString += "&";
+
+        String last = "page=" + (page.getTotalPages() - 1) + "&size=" + page.getSize();
+
+        paged.add(linkTo(methodOn(RecipeController.class).search(null, null,
+                null, null))
+                .slash(queryString + last)
+                .withRel("last"));
 
         return paged;
+    }
+
+    @PostMapping(value = "/recipes/{id}/clone")
+    public RecipeResource cloneRecipe(
+            Authentication auth,
+            @PathVariable UUID id
+    ) {
+        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
+        var tmp = this.recipeService.cloneRecipe(id, user);
+        return this.recipeAssembler.toModel(tmp);
     }
 
     @GetMapping("/recipes/cookingMethods")

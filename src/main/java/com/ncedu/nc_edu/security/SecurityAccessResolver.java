@@ -1,34 +1,30 @@
 package com.ncedu.nc_edu.security;
 
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserRole;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 public interface SecurityAccessResolver {
-    public Authentication getAuthentication();
+    Authentication getAuthentication();
 
-    public User getUser();
+    User getUser();
 
-    public Set<GrantedAuthority> getAuthorities();
+    Set<GrantedAuthority> getAuthorities();
 
-    public boolean isSelf(UUID id);
+    boolean isSelf(UUID id);
 
-    public boolean isModerator();
+    boolean isModerator();
 
-    public boolean isAdmin();
+    boolean isAdmin();
 
-    public boolean isAdminOrModerator();
+    boolean isAdminOrModerator();
 
-    public boolean isSelfOrGranted(UUID id);
+    boolean isSelfOrGranted(UUID id);
 
-    public boolean isRecipeOwnerOrGranted(UUID recipeId);
+    boolean isRecipeOwnerOrGranted(UUID recipeId);
 
-    public GrantedAuthority getHeadAuthority();
+    GrantedAuthority getHeadAuthority();
 }

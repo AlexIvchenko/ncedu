@@ -53,19 +53,10 @@ public class TagController {
         }
 
         List<TagResource> tags = tagEntities.stream()
-                .map(tag -> {
-                    TagResource t = tagAssembler.toModel(tag);
-
-                    // todo link to search by this tag
-                    //.add(linkTo(methodOn(TagController.class).getById(t.getId())).withSelfRel());
-
-                    return t;
-                })
+                .map(tag -> tagAssembler.toModel(tag))
                 .collect(Collectors.toList());
 
-        CollectionModel<TagResource> resource = new CollectionModel<>(tags);
-
-        return resource;
+        return new CollectionModel<>(tags);
     }
 
     @GetMapping("/tags/{id}/recipes")
