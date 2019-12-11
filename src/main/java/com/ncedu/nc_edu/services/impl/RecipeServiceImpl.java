@@ -204,6 +204,12 @@ public class RecipeServiceImpl implements RecipeService {
         });
 
         recipe.getIngredientsRecipes().retainAll(ingredientsRecipes);
+        recipe.getIngredientsRecipes().forEach(current -> {
+            IngredientsRecipes ingr = ingredientsRecipes.stream().filter(current::equals).findAny().orElse(null);
+            if (ingr == null) return;
+            current.setValue(ingr.getValue());
+            current.setValueType(ingr.getValueType());
+        });
         recipe.getIngredientsRecipes().addAll(ingredientsRecipes);
 
         this.recipeRepository.delete(editedRecipe);
@@ -294,6 +300,7 @@ public class RecipeServiceImpl implements RecipeService {
                 recipe.setState(PUBLISHED);
                 Recipe editedRecipe = recipe.getClonedRef();
                 recipe.setClonedRef(null);
+                editedRecipe.setOriginalRef(null);
                 editedRecipe.setState(PUBLISHED);
                 editedRecipe.setVisible(true);
                 this.recipeRepository.save(recipe);
@@ -418,6 +425,12 @@ public class RecipeServiceImpl implements RecipeService {
         if (resource.getIngredients() != null) {
             Set<IngredientsRecipes> ingredients = updateRecipeIngredients(resource, oldRecipe);
             oldRecipe.getIngredientsRecipes().retainAll(ingredients);
+            oldRecipe.getIngredientsRecipes().forEach(current -> {
+                IngredientsRecipes ingr = ingredients.stream().filter(current::equals).findAny().orElse(null);
+                if (ingr == null) return;
+                current.setValue(ingr.getValue());
+                current.setValueType(ingr.getValueType());
+            });
             oldRecipe.getIngredientsRecipes().addAll(ingredients);
         }
 
@@ -472,6 +485,7 @@ public class RecipeServiceImpl implements RecipeService {
     private void updateRecipeSteps(List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
         List<RecipeStep> steps = oldRecipe.getSteps();
         Map<UUID, RecipeStep> stepMap = new LinkedHashMap<>();
+        resourceSteps.forEach(step -> step.setId(null));
         for (RecipeStep step : steps) {
             stepMap.put(step.getId(), step);
         }

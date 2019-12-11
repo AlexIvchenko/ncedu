@@ -188,6 +188,7 @@ public class Recipe {
             IngredientsRecipes cur = iterator.next();
             cur.setIngredient(null);
             cur.setRecipe(null);
+            cur.setId(null);
             iterator.remove();
         }
     }
