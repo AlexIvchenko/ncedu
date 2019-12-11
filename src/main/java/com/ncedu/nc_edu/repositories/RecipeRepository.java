@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -20,4 +21,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>, JpaSpecif
     Page<Recipe> findAll(Pageable pageable);
 
     Page<Recipe> findAllByVisibleIsTrue(Pageable pageable);
+
+    List<Recipe> findAllByStateInAndOriginalRefIsNull(Set<Recipe.State> states);
 }

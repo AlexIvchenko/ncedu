@@ -68,10 +68,10 @@ public class RecipeResource extends RepresentationModel<RecipeResource> implemen
      */
     private UUID owner;
 
-    @JsonView(View.Owner.class)
+    @JsonView({View.Owner.class, View.Moderator.class})
     private String state;
 
-    @JsonView(View.Owner.class)
+    @JsonView({View.Owner.class, View.Moderator.class})
     private Boolean isEditedClone;
 
     @Override

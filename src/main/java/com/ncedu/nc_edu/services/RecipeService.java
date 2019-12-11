@@ -48,4 +48,8 @@ public interface RecipeService {
     boolean moderatorCloneChanges(UUID id);
 
     boolean moderatorComment(UUID id, String message);
+
+    List<Recipe> moderatorFindAll();
+
+    Recipe moderatorFindOriginalById(UUID id);
 }

@@ -49,11 +49,17 @@ public class RecipeServiceImpl implements RecipeService {
         return this.recipeRepository.findAllByVisibleIsTrue(pageable);
     }
 
+    @Override
+    public List<Recipe> moderatorFindAll() {
+        Set<Recipe.State> states = Set.of(WAITING_FOR_APPROVAL, EDITED);
+        return this.recipeRepository.findAllByStateInAndOriginalRefIsNull(states);
+    }
+
     public Recipe findById(UUID id) {
         Recipe recipe = this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         if (recipe.getOwner().equals(securityAccessResolver.getUser()) || securityAccessResolver.isModerator()) {
-            if (recipe.getOwner().equals(securityAccessResolver.getUser()) && recipe.getClonedRef() != null) {
+            if (recipe.getClonedRef() != null) {
                 return recipe.getClonedRef();
             }
 
@@ -65,6 +71,16 @@ public class RecipeServiceImpl implements RecipeService {
         }
 
         throw new EntityDoesNotExistsException("Recipe");
+    }
+
+    public Recipe moderatorFindOriginalById(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        if (recipe.getClonedRef() == null) {
+            throw new EntityDoesNotExistsException("Recipe");
+        }
+
+        return recipe;
     }
 
     public List<Recipe> findByName(String name) {
@@ -207,7 +223,8 @@ public class RecipeServiceImpl implements RecipeService {
 
         switch (recipe.getState()) {
             case WAITING_FOR_APPROVAL:
-                return this.removeById(recipe.getId());
+                recipe.setState(EDITABLE);
+                return true;
 
             case EDITED:
                 this.declineEditedChanges(recipe);

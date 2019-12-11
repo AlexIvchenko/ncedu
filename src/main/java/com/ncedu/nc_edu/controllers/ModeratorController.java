@@ -1,21 +1,36 @@
 package com.ncedu.nc_edu.controllers;
 
+import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
+import com.ncedu.nc_edu.dto.assemblers.RecipeStepAssembler;
+import com.ncedu.nc_edu.dto.resources.RecipeResource;
+import com.ncedu.nc_edu.dto.resources.RecipeStepResource;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Size;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/moderator")
 public class ModeratorController {
     private final RecipeService recipeService;
+    private final RecipeAssembler recipeAssembler;
+    private final RecipeStepAssembler recipeStepAssembler;
 
     @Autowired
-    public ModeratorController(RecipeService recipeService) {
+    public ModeratorController(RecipeService recipeService, RecipeAssembler recipeAssembler, RecipeStepAssembler recipeStepAssembler) {
         this.recipeService = recipeService;
+        this.recipeAssembler = recipeAssembler;
+        this.recipeStepAssembler = recipeStepAssembler;
     }
 
     public ResponseEntity<?> moderatorRoot() {
@@ -62,6 +77,32 @@ public class ModeratorController {
         boolean status = this.recipeService.moderatorCloneChanges(id);
 
         return this.getResponseEntityByStatus(status);
+    }
+
+    @GetMapping("/recipes")
+    public ResponseEntity<CollectionModel<RecipeResource>> getAllRecipes() {
+        List<Recipe> recipes = this.recipeService.moderatorFindAll();
+
+        return ResponseEntity.ok().body(recipeAssembler.toCollectionModel(recipes));
+    }
+
+    @GetMapping("/recipes/{id}")
+    public ResponseEntity<RecipeResource> getRecipe(@PathVariable UUID id) {
+        Recipe recipe = this.recipeService.moderatorFindOriginalById(id);
+
+        return ResponseEntity.ok().body(recipeAssembler.toModel(recipe));
+    }
+
+    @GetMapping("/recipes/{id}/steps")
+    public CollectionModel<RecipeStepResource> getRecipeSteps(@PathVariable UUID id) {
+        CollectionModel<RecipeStepResource> resource = new CollectionModel<>(
+                this.recipeService.moderatorFindOriginalById(id).getSteps().stream()
+                        .map(recipeStepAssembler::toModel).collect(Collectors.toList())
+        );
+
+        resource.add(linkTo(methodOn(RecipeController.class).getById(null, id)).withRel("recipe"));
+
+        return resource;
     }
 
     private ResponseEntity<Void> getResponseEntityByStatus(boolean status) {
