@@ -187,7 +187,7 @@ public class RecipeSearchSpecification implements Specification<Recipe> {
 
     private Specification<Recipe> containsName(String value) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.like(root.get("name"), value);
+                criteriaBuilder.like(root.get("name"), "%" + value + "%");
     }
 
     private Specification<Recipe> inCuisines(Set<Recipe.Cuisine> cuisines) {

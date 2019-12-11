@@ -35,13 +35,17 @@ public interface RecipeService {
 
     Page<Recipe> search(RecipeSearchCriteria recipeSearchCriteria, Pageable pageable);
 
+    boolean requestForApproval(UUID id);
+
     boolean removeById(UUID id);
 
     boolean moderatorApprove(UUID id);
 
     boolean moderatorDecline(UUID id);
 
-    boolean moderatorRequestForChanges(UUID id, String message);
+    boolean moderatorRequestForChanges(UUID id);
 
     boolean moderatorCloneChanges(UUID id);
+
+    boolean moderatorComment(UUID id, String message);
 }

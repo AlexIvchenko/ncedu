@@ -53,6 +53,10 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe recipe = this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         if (recipe.getOwner().equals(securityAccessResolver.getUser()) || securityAccessResolver.isModerator()) {
+            if (recipe.getOwner().equals(securityAccessResolver.getUser()) && recipe.getClonedRef() != null) {
+                return recipe.getClonedRef();
+            }
+
             return recipe;
         }
 
@@ -84,7 +88,7 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
-            case CHANGES_NEEDED:
+            case EDITABLE:
             case WAITING_FOR_APPROVAL:
                 recipe.setVisible(false);
                 recipe.setState(Recipe.State.DELETED);
@@ -95,11 +99,7 @@ public class RecipeServiceImpl implements RecipeService {
                 throw new EntityDoesNotExistsException("Recipe");
 
             case EDITED:
-                if (securityAccessResolver.isModerator()) {
-                    return false;
-                } else {
-                    throw new EntityDoesNotExistsException("Recipe");
-                }
+                return false;
 
             case PUBLISHED:
                 if (securityAccessResolver.isModerator()) {
@@ -130,7 +130,7 @@ public class RecipeServiceImpl implements RecipeService {
                 this.approveEditedRecipe(recipe);
                 return true;
 
-            case CHANGES_NEEDED:
+            case EDITABLE:
             case DELETED:
             case PUBLISHED:
                 return false;
@@ -175,22 +175,20 @@ public class RecipeServiceImpl implements RecipeService {
 
         Set<IngredientsRecipes> ingredientsRecipes = new HashSet<>();
 
-        editedRecipe.getIngredientsRecipes().forEach(ingredientsRecipes1 -> {
-            Ingredient ingredient = ingredientService.findById(ingredientsRecipes1.getIngredient().getId());
+        editedRecipe.getIngredientsRecipes().forEach(currentIngredientsRecipes -> {
+            Ingredient ingredient = ingredientService.findById(currentIngredientsRecipes.getIngredient().getId());
             IngredientsRecipes temp = new IngredientsRecipes();
 
             temp.setIngredient(ingredient);
             temp.setRecipe(recipe);
-            temp.setValue(ingredientsRecipes1.getValue());
-            temp.setValueType(ingredientsRecipes1.getValueType());
+            temp.setValue(currentIngredientsRecipes.getValue());
+            temp.setValueType(currentIngredientsRecipes.getValueType());
 
             ingredientsRecipes.add(temp);
         });
 
         recipe.getIngredientsRecipes().retainAll(ingredientsRecipes);
         recipe.getIngredientsRecipes().addAll(ingredientsRecipes);
-
-        //recipe.setIngredientsRecipes(ingredientsRecipes);
 
         this.recipeRepository.delete(editedRecipe);
     }
@@ -216,7 +214,7 @@ public class RecipeServiceImpl implements RecipeService {
                 return true;
 
 
-            case CHANGES_NEEDED:
+            case EDITABLE:
             case DELETED:
             case PUBLISHED:
                 return false;
@@ -237,18 +235,17 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public boolean moderatorRequestForChanges(UUID id, String message) {
+    public boolean moderatorRequestForChanges(UUID id) {
         Recipe recipe = this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
             case WAITING_FOR_APPROVAL:
-            case CHANGES_NEEDED:
-                recipe.setModeratorComment(message);
-                recipe.setState(CHANGES_NEEDED);
+                recipe.setState(EDITABLE);
                 this.recipeRepository.save(recipe);
                 return true;
 
+            case EDITABLE:
             case EDITED:
             case DELETED:
             case PUBLISHED:
@@ -257,6 +254,17 @@ public class RecipeServiceImpl implements RecipeService {
             default:
                 throw new RuntimeException("Reached unreachable statement");
         }
+    }
+
+    @Override
+    public boolean moderatorComment(UUID id, String message) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        recipe.setModeratorComment(message);
+        this.recipeRepository.save(recipe);
+
+        return true;
     }
 
     @Override
@@ -275,7 +283,36 @@ public class RecipeServiceImpl implements RecipeService {
                 this.recipeRepository.save(editedRecipe);
                 return true;
 
-            case CHANGES_NEEDED:
+            case EDITABLE:
+            case WAITING_FOR_APPROVAL:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    @Override
+    public boolean requestForApproval(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case EDITABLE:
+                if (securityAccessResolver.getUser() == null) {
+                    return false;
+                }
+
+                if (!securityAccessResolver.getUser().getId().equals(recipe.getOwner().getId())) {
+                    return false;
+                }
+
+                recipe.setState(WAITING_FOR_APPROVAL);
+                return true;
+
+            case EDITED:
             case WAITING_FOR_APPROVAL:
             case DELETED:
             case PUBLISHED:
@@ -294,12 +331,13 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (oldRecipe.getState()) {
-            case CHANGES_NEEDED:
-                oldRecipe.setState(WAITING_FOR_APPROVAL);
+            case EDITABLE:
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
             case WAITING_FOR_APPROVAL:
+                oldRecipe.setState(EDITABLE);
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
+
 
             case DELETED:
                 throw new EntityDoesNotExistsException("Recipe");
@@ -313,6 +351,13 @@ public class RecipeServiceImpl implements RecipeService {
         }
     }
 
+    /**
+     * Applies changes directly to recipe
+     * @param resource recipe info resource
+     * @param resourceSteps recipe steps resource
+     * @param oldRecipe a recipe to apply
+     * @return saved recipe with applied changes
+     */
     private Recipe updateDirectly(RecipeResource resource, List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
         oldRecipe.setName(resource.getName());
 
@@ -379,6 +424,9 @@ public class RecipeServiceImpl implements RecipeService {
         clonedRecipe.setOriginalRef(oldRecipe);
         oldRecipe.setState(Recipe.State.EDITED);
         clonedRecipe.setVisible(false);
+        clonedRecipe.setState(EDITED);
+
+        resourceSteps.forEach(step -> step.setId(null));
 
         this.updateDirectly(resource, resourceSteps, clonedRecipe);
 
@@ -459,7 +507,7 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setReviewsNumber(0);
 
         // initial state
-        recipe.setState(Recipe.State.WAITING_FOR_APPROVAL);
+        recipe.setState(Recipe.State.EDITABLE);
         recipe.setVisible(false);
 
         if (resource.getCookingMethods() != null) {
@@ -499,6 +547,7 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe recipe = new Recipe(this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe")));
         recipe.setOwner(user);
+        recipe.setState(EDITABLE);
         return this.recipeRepository.save(recipe);
     }
 

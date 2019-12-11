@@ -99,6 +99,17 @@ public class RecipeController {
         return ResponseEntity.ok(resource);
     }
 
+    @PutMapping(value = "/recipes/{id}/requestForApproval")
+    public ResponseEntity<Void> requestForApproval(@PathVariable UUID id) {
+        boolean status = this.recipeService.requestForApproval(id);
+
+        if (status) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.badRequest().build();
+    }
+
     @GetMapping(value = "/recipes/{id}/steps")
     public CollectionModel<RecipeStepResource> getRecipeSteps(@PathVariable UUID id) {
         CollectionModel<RecipeStepResource> resource = new CollectionModel<>(

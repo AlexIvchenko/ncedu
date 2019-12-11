@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.UUID;
 
@@ -31,10 +30,15 @@ public class ModeratorController {
     }
 
     @PostMapping("/recipes/{id}/changesNeeded")
-    public ResponseEntity<Void> requestForRecipeChanges(@PathVariable UUID id,
-                                                        @RequestParam @Size(max = 512) @NotBlank String message
-    ) {
-        boolean status = this.recipeService.moderatorRequestForChanges(id, message);
+    public ResponseEntity<Void> requestForRecipeChanges(@PathVariable UUID id) {
+        boolean status = this.recipeService.moderatorRequestForChanges(id);
+
+        return this.getResponseEntityByStatus(status);
+    }
+
+    @PutMapping("/recipes/{id}/comment")
+    public ResponseEntity<Void> recipeComment(@PathVariable UUID id, @RequestParam @Size(max = 512) String message) {
+        boolean status = this.recipeService.moderatorComment(id, message);
 
         return this.getResponseEntityByStatus(status);
     }

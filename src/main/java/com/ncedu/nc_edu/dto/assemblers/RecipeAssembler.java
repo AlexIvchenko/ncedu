@@ -60,8 +60,17 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));
         resource.add(linkTo(methodOn(RecipeController.class).getReviews(entity.getId())).withRel("reviews").withType("GET"));
 
+
         if (securityAccessResolver.isRecipeOwnerOrGranted(entity.getId())) {
+            if (entity.getOriginalRef() != null) {
+                resource.setIsEditedClone(true);
+                resource.setId(entity.getOriginalRef().getId());
+            }
+            resource.setState(entity.getState().toString());
             resource.setModeratorComment(entity.getModeratorComment());
+            if (entity.getState().equals(Recipe.State.EDITABLE)) {
+                resource.add(linkTo(methodOn(RecipeController.class).requestForApproval(entity.getId())).withRel("approve").withType("PUT"));
+            }
             resource.add(linkTo(methodOn(RecipeController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
             resource.add(linkTo(methodOn(RecipeController.class).remove(auth, entity.getId())).withRel("remove").withType("DELETE"));
         }
