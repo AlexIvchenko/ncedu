@@ -81,7 +81,7 @@ public class Recipe {
     public enum State {
         // UNLISTED:
         WAITING_FOR_APPROVAL,
-        CHANGES_NEEDED,
+        EDITABLE,
         // PUBLIC:
         EDITED,
         PUBLISHED,
