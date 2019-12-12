@@ -76,7 +76,8 @@ public class UserServiceImpl implements UserService {
         User oldUser = userRepository.findById(userInfo.getId()).orElseThrow(() -> new EntityDoesNotExistsException("User"));
 
         if (userInfo.getEmail() != null) {
-            if (userRepository.findByEmail(userInfo.getEmail()).isPresent())
+            Optional<User> user = userRepository.findByEmail(userInfo.getEmail());
+            if (user.isPresent() && !user.get().getId().equals(oldUser.getId()))
                 throw new AlreadyExistsException("User", "email");
             oldUser.setEmail(userInfo.getEmail());
         }

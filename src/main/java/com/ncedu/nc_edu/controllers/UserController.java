@@ -90,7 +90,7 @@ public class UserController {
      *  birthday < current date
      *  gender = UNKNOWN|MALE|FEMALE
      */
-    @PutMapping(value = "/users/{id}")
+    @PatchMapping(value = "/users/{id}")
     public ResponseEntity<RepresentationModel<UserResource>> update(
             @PathVariable UUID id,
             @Valid @RequestBody UserResource userResource) {
