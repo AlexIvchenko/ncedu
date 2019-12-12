@@ -16,16 +16,10 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.AbstractMappingJacksonResponseBodyAdvice;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class SecurityJsonViewControllerAdvice extends AbstractMappingJacksonResponseBodyAdvice {
@@ -48,10 +42,7 @@ public class SecurityJsonViewControllerAdvice extends AbstractMappingJacksonResp
 
             bodyContainer.setSerializationView(View.getView(securityAccessResolver.getHeadAuthority()));
             if (bodyContainer.getValue() instanceof CollectionModel) {
-                //Collection model = ((CollectionModel) bodyContainer.getValue()).getContent();
-                //if (model.isEmpty()) {
                     return;
-                //}
             }
             if (Arrays.asList(bodyContainer.getValue().getClass().getInterfaces()).contains(OwnableResource.class)
                     && ((OwnableResource)bodyContainer.getValue()).getOwnerId().equals(securityAccessResolver.getUser().getId())) {
