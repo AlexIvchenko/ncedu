@@ -14,15 +14,42 @@ import java.util.UUID;
 
 public interface RecipeService {
     List<Recipe> findByName(String name);
+
     Recipe findById(UUID id);
+
     List<UserReview> findReviewsById(UUID id);
+
     UserReview findReviewByIds(UUID receiptId, UUID reviewId);
+
     UserReview addReview(UUID recipeId, UserReviewResource userReviewResource);
+
     Page<Recipe> findAll(Pageable pageable);
+
     List<Recipe> findAllOwn(User user);
-    void removeById(UUID id);
+
     Recipe update(RecipeWithStepsResource dto);
+
     Recipe create(RecipeWithStepsResource dto, User owner);
+
     Recipe cloneRecipe(UUID id, User user);
+
     Page<Recipe> search(RecipeSearchCriteria recipeSearchCriteria, Pageable pageable);
+
+    boolean requestForApproval(UUID id);
+
+    boolean removeById(UUID id);
+
+    boolean moderatorApprove(UUID id);
+
+    boolean moderatorDecline(UUID id);
+
+    boolean moderatorRequestForChanges(UUID id);
+
+    boolean moderatorCloneChanges(UUID id);
+
+    boolean moderatorComment(UUID id, String message);
+
+    List<Recipe> moderatorFindAll();
+
+    Recipe moderatorFindOriginalById(UUID id);
 }

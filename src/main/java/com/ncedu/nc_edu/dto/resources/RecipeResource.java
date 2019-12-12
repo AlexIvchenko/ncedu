@@ -1,6 +1,9 @@
 package com.ncedu.nc_edu.dto.resources;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ncedu.nc_edu.models.Recipe;
+import com.ncedu.nc_edu.security.View;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.hateoas.RepresentationModel;
@@ -12,7 +15,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RecipeResource extends RepresentationModel<RecipeResource> {
+public class RecipeResource extends RepresentationModel<RecipeResource> implements OwnableResource {
     private UUID id;
 
     @NotBlank(message = "Name cannot be empty")
@@ -58,8 +61,22 @@ public class RecipeResource extends RepresentationModel<RecipeResource> {
 
     private List<RecipeIngredientResource> ingredients;
 
+    private String moderatorComment;
+
     /**
      * Field only for returning. Should be never updated.
      */
     private UUID owner;
+
+    @JsonView({View.Owner.class, View.Moderator.class})
+    private String state;
+
+    @JsonView({View.Owner.class, View.Moderator.class})
+    private Boolean isEditedClone;
+
+    @Override
+    @JsonIgnore
+    public UUID getOwnerId() {
+        return this.owner;
+    }
 }

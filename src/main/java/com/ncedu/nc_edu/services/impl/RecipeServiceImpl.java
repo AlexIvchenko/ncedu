@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.ncedu.nc_edu.models.Recipe.State.*;
+
 ;
 
 @Service
@@ -47,14 +49,38 @@ public class RecipeServiceImpl implements RecipeService {
         return this.recipeRepository.findAllByVisibleIsTrue(pageable);
     }
 
+    @Override
+    public List<Recipe> moderatorFindAll() {
+        Set<Recipe.State> states = Set.of(WAITING_FOR_APPROVAL, EDITED);
+        return this.recipeRepository.findAllByStateInAndOriginalRefIsNull(states);
+    }
+
     public Recipe findById(UUID id) {
         Recipe recipe = this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         if (recipe.getOwner().equals(securityAccessResolver.getUser()) || securityAccessResolver.isModerator()) {
+            if (recipe.getClonedRef() != null) {
+                return recipe.getClonedRef();
+            }
+
+            return recipe;
+        }
+
+        if (recipe.isVisible()) {
             return recipe;
         }
 
         throw new EntityDoesNotExistsException("Recipe");
+    }
+
+    public Recipe moderatorFindOriginalById(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        if (recipe.getClonedRef() == null) {
+            throw new EntityDoesNotExistsException("Recipe");
+        }
+
+        return recipe;
     }
 
     public List<Recipe> findByName(String name) {
@@ -73,31 +99,248 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public void removeById(UUID id) {
+    public boolean removeById(UUID id) {
         Recipe recipe = this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
-            case CHANGES_NEEDED:
+            case EDITABLE:
             case WAITING_FOR_APPROVAL:
                 recipe.setVisible(false);
                 recipe.setState(Recipe.State.DELETED);
                 this.recipeRepository.save(recipe);
-                return;
+                return true;
 
             case DELETED:
                 throw new EntityDoesNotExistsException("Recipe");
 
             case EDITED:
+                return false;
+
             case PUBLISHED:
                 if (securityAccessResolver.isModerator()) {
                     recipe.setVisible(false);
                     recipe.setState(Recipe.State.DELETED);
                     this.recipeRepository.save(recipe);
-                    return;
+                    return true;
                 } else {
                     throw new EntityDoesNotExistsException("Recipe");
                 }
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    @Override
+    public boolean moderatorApprove(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case WAITING_FOR_APPROVAL:
+                this.approveWaitingForApprovalRecipe(recipe);
+                return true;
+
+            case EDITED:
+                this.approveEditedRecipe(recipe);
+                return true;
+
+            case EDITABLE:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    // Merge cloned with changes into original and delete cloned
+    private void approveEditedRecipe(Recipe recipe) {
+        Recipe editedRecipe = recipe.getClonedRef();
+
+        recipe.setVisible(true);
+        recipe.setClonedRef(null);
+        recipe.setState(PUBLISHED);
+        recipe.setCalories(editedRecipe.getCalories());
+        recipe.setCarbohydrates(editedRecipe.getCarbohydrates());
+        recipe.setCookingTime(editedRecipe.getCookingTime());
+        recipe.setCuisine(editedRecipe.getCuisine());
+        recipe.setFats(editedRecipe.getFats());
+        recipe.setProteins(editedRecipe.getProteins());
+        recipe.setPrice(editedRecipe.getPrice());
+        recipe.setName(editedRecipe.getName());
+
+        recipe.setTags(new HashSet<>(editedRecipe.getTags()));
+        recipe.setCookingMethods(new HashSet<>(editedRecipe.getCookingMethods()));
+
+        List<RecipeStep> steps = new ArrayList<>();
+        recipe.removeSteps();
+
+        editedRecipe.getSteps().forEach(recipeStep -> {
+            RecipeStep tempStep = new RecipeStep();
+            tempStep.setId(UUID.randomUUID());
+            tempStep.setRecipe(recipe);
+            tempStep.setDescription(recipeStep.getDescription());
+            tempStep.setPicture(recipeStep.getPicture());
+            steps.add(tempStep);
+        });
+
+        recipe.setSteps(steps);
+
+        Set<IngredientsRecipes> ingredientsRecipes = new HashSet<>();
+
+        editedRecipe.getIngredientsRecipes().forEach(currentIngredientsRecipes -> {
+            Ingredient ingredient = ingredientService.findById(currentIngredientsRecipes.getIngredient().getId());
+            IngredientsRecipes temp = new IngredientsRecipes();
+
+            temp.setIngredient(ingredient);
+            temp.setRecipe(recipe);
+            temp.setValue(currentIngredientsRecipes.getValue());
+            temp.setValueType(currentIngredientsRecipes.getValueType());
+
+            ingredientsRecipes.add(temp);
+        });
+
+        recipe.getIngredientsRecipes().retainAll(ingredientsRecipes);
+        recipe.getIngredientsRecipes().forEach(current -> {
+            IngredientsRecipes ingr = ingredientsRecipes.stream().filter(current::equals).findAny().orElse(null);
+            if (ingr == null) return;
+            current.setValue(ingr.getValue());
+            current.setValueType(ingr.getValueType());
+        });
+        recipe.getIngredientsRecipes().addAll(ingredientsRecipes);
+
+        this.recipeRepository.delete(editedRecipe);
+    }
+
+    private void approveWaitingForApprovalRecipe(Recipe recipe) {
+        recipe.setVisible(true);
+        recipe.setModeratorComment("");
+        recipe.setState(PUBLISHED);
+        this.recipeRepository.save(recipe);
+    }
+
+    @Override
+    public boolean moderatorDecline(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case WAITING_FOR_APPROVAL:
+                recipe.setState(EDITABLE);
+                return true;
+
+            case EDITED:
+                this.declineEditedChanges(recipe);
+                return true;
+
+
+            case EDITABLE:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    private void declineEditedChanges(Recipe recipe) {
+        Recipe editedRecipe = recipe.getClonedRef();
+
+        recipe.setState(PUBLISHED);
+        recipe.setClonedRef(null);
+
+        this.recipeRepository.delete(editedRecipe);
+        this.recipeRepository.save(recipe);
+    }
+
+    @Override
+    public boolean moderatorRequestForChanges(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case WAITING_FOR_APPROVAL:
+                recipe.setState(EDITABLE);
+                this.recipeRepository.save(recipe);
+                return true;
+
+            case EDITABLE:
+            case EDITED:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    @Override
+    public boolean moderatorComment(UUID id, String message) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        recipe.setModeratorComment(message);
+        this.recipeRepository.save(recipe);
+
+        return true;
+    }
+
+    @Override
+    public boolean moderatorCloneChanges(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case EDITED:
+                recipe.setState(PUBLISHED);
+                Recipe editedRecipe = recipe.getClonedRef();
+                recipe.setClonedRef(null);
+                editedRecipe.setOriginalRef(null);
+                editedRecipe.setState(PUBLISHED);
+                editedRecipe.setVisible(true);
+                this.recipeRepository.save(recipe);
+                this.recipeRepository.save(editedRecipe);
+                return true;
+
+            case EDITABLE:
+            case WAITING_FOR_APPROVAL:
+            case DELETED:
+            case PUBLISHED:
+                return false;
+
+            default:
+                throw new RuntimeException("Reached unreachable statement");
+        }
+    }
+
+    @Override
+    public boolean requestForApproval(UUID id) {
+        Recipe recipe = this.recipeRepository.findById(id)
+                .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
+
+        switch (recipe.getState()) {
+            case EDITABLE:
+                if (securityAccessResolver.getUser() == null) {
+                    return false;
+                }
+
+                if (!securityAccessResolver.getUser().getId().equals(recipe.getOwner().getId())) {
+                    return false;
+                }
+
+                recipe.setState(WAITING_FOR_APPROVAL);
+                return true;
+
+            case EDITED:
+            case WAITING_FOR_APPROVAL:
+            case DELETED:
+            case PUBLISHED:
+                return false;
 
             default:
                 throw new RuntimeException("Reached unreachable statement");
@@ -112,9 +355,13 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (oldRecipe.getState()) {
-            case CHANGES_NEEDED:
-            case WAITING_FOR_APPROVAL:
+            case EDITABLE:
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
+
+            case WAITING_FOR_APPROVAL:
+                oldRecipe.setState(EDITABLE);
+                return this.updateDirectly(resource, resourceSteps, oldRecipe);
+
 
             case DELETED:
                 throw new EntityDoesNotExistsException("Recipe");
@@ -128,6 +375,13 @@ public class RecipeServiceImpl implements RecipeService {
         }
     }
 
+    /**
+     * Applies changes directly to recipe
+     * @param resource recipe info resource
+     * @param resourceSteps recipe steps resource
+     * @param oldRecipe a recipe to apply
+     * @return saved recipe with applied changes
+     */
     private Recipe updateDirectly(RecipeResource resource, List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
         oldRecipe.setName(resource.getName());
 
@@ -171,6 +425,12 @@ public class RecipeServiceImpl implements RecipeService {
         if (resource.getIngredients() != null) {
             Set<IngredientsRecipes> ingredients = updateRecipeIngredients(resource, oldRecipe);
             oldRecipe.getIngredientsRecipes().retainAll(ingredients);
+            oldRecipe.getIngredientsRecipes().forEach(current -> {
+                IngredientsRecipes ingr = ingredients.stream().filter(current::equals).findAny().orElse(null);
+                if (ingr == null) return;
+                current.setValue(ingr.getValue());
+                current.setValueType(ingr.getValueType());
+            });
             oldRecipe.getIngredientsRecipes().addAll(ingredients);
         }
 
@@ -194,6 +454,9 @@ public class RecipeServiceImpl implements RecipeService {
         clonedRecipe.setOriginalRef(oldRecipe);
         oldRecipe.setState(Recipe.State.EDITED);
         clonedRecipe.setVisible(false);
+        clonedRecipe.setState(EDITED);
+
+        resourceSteps.forEach(step -> step.setId(null));
 
         this.updateDirectly(resource, resourceSteps, clonedRecipe);
 
@@ -222,6 +485,7 @@ public class RecipeServiceImpl implements RecipeService {
     private void updateRecipeSteps(List<RecipeStepResource> resourceSteps, Recipe oldRecipe) {
         List<RecipeStep> steps = oldRecipe.getSteps();
         Map<UUID, RecipeStep> stepMap = new LinkedHashMap<>();
+        resourceSteps.forEach(step -> step.setId(null));
         for (RecipeStep step : steps) {
             stepMap.put(step.getId(), step);
         }
@@ -271,9 +535,10 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setCuisine(resource.getCuisine());
         recipe.setCookingTime(resource.getCookingTime());
         recipe.setPrice(resource.getPrice());
+        recipe.setReviewsNumber(0);
 
         // initial state
-        recipe.setState(Recipe.State.WAITING_FOR_APPROVAL);
+        recipe.setState(Recipe.State.EDITABLE);
         recipe.setVisible(false);
 
         if (resource.getCookingMethods() != null) {
@@ -313,6 +578,7 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe recipe = new Recipe(this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe")));
         recipe.setOwner(user);
+        recipe.setState(EDITABLE);
         return this.recipeRepository.save(recipe);
     }
 
