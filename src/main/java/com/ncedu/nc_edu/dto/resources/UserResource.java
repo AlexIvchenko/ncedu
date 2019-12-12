@@ -13,6 +13,7 @@ import javax.validation.constraints.Past;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.UUID;
 
 @Data
@@ -38,7 +39,7 @@ public class UserResource extends RepresentationModel<UserResource> implements O
 
     @JsonView(View.Owner.class)
     @Past(message = "Birthday must be in the past")
-    @JsonFormat(pattern = "dd.MM.yyyy")
+    @JsonFormat(pattern = "dd.MM.yyyy", timezone = "Europe/Moscow")
     private Date birthday;
 
     @JsonView(View.Owner.class)
