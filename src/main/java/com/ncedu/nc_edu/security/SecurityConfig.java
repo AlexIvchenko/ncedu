@@ -44,7 +44,7 @@ public class SecurityConfig {
                     .antMatchers("/moderator/**").access("@securityAccessResolverImpl.isModerator()")
                     .antMatchers("/users").access("@securityAccessResolverImpl.isAdminOrModerator()")
                     .antMatchers("/users/{userId}/reviews").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
-                    .antMatchers(HttpMethod.PUT, "/users/{userId}").access("@securityAccessResolverImpl.isSelfOrGranted(#userId)")
+                    .antMatchers(HttpMethod.PATCH, "/users/{userId}").access("@securityAccessResolverImpl.isSelf(#userId)")
                     .antMatchers(HttpMethod.PUT, "/recipes/{recipeId}/**").access("@securityAccessResolverImpl.isRecipeOwnerOrGranted(#recipeId)")
                     .antMatchers(HttpMethod.DELETE, "/recipes/{recipeId}/**").access("@securityAccessResolverImpl.isRecipeOwnerOrGranted(#recipeId)")
                     .antMatchers(HttpMethod.POST, "/ingredients/**").access("@securityAccessResolverImpl.isAdminOrModerator()")
