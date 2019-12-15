@@ -3,12 +3,11 @@ package com.ncedu.nc_edu.controllers;
 import com.ncedu.nc_edu.dto.UserRegistrationCredentials;
 import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
 import com.ncedu.nc_edu.dto.assemblers.UserAssembler;
-import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
+import com.ncedu.nc_edu.dto.assemblers.ReviewAssembler;
 import com.ncedu.nc_edu.dto.resources.RecipeResource;
 import com.ncedu.nc_edu.dto.resources.UserResource;
-import com.ncedu.nc_edu.dto.resources.UserReviewResource;
+import com.ncedu.nc_edu.dto.resources.ReviewResource;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserReview;
 import com.ncedu.nc_edu.security.CustomUserDetails;
 import com.ncedu.nc_edu.services.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,16 +30,16 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
     private final UserAssembler userAssembler;
-    private final UserReviewAssembler userReviewAssembler;
+    private final ReviewAssembler reviewAssembler;
     private final RecipeAssembler recipeAssembler;
 
     public UserController(@Autowired UserService userService,
                           @Autowired UserAssembler userAssembler,
-                          @Autowired UserReviewAssembler userReviewAssembler,
+                          @Autowired ReviewAssembler reviewAssembler,
                           @Autowired RecipeAssembler recipeAssembler) {
         this.userService = userService;
         this.userAssembler = userAssembler;
-        this.userReviewAssembler = userReviewAssembler;
+        this.reviewAssembler = reviewAssembler;
         this.recipeAssembler = recipeAssembler;
     }
 
@@ -80,8 +77,8 @@ public class UserController {
     }
 
     @GetMapping(value = "/users/{id}/reviews")
-    public ResponseEntity<CollectionModel<UserReviewResource>> getUserReviews(@PathVariable UUID id) {
-        return ResponseEntity.ok(userReviewAssembler.toCollectionModel(userService.getReviewsById(id)));
+    public ResponseEntity<CollectionModel<ReviewResource>> getUserReviews(@PathVariable UUID id) {
+        return ResponseEntity.ok(reviewAssembler.toCollectionModel(userService.getReviewsById(id)));
     }
 
     /*

@@ -2,7 +2,7 @@ package com.ncedu.nc_edu.controllers;
 
 import com.ncedu.nc_edu.dto.assemblers.RecipeAssembler;
 import com.ncedu.nc_edu.dto.assemblers.RecipeStepAssembler;
-import com.ncedu.nc_edu.dto.assemblers.UserReviewAssembler;
+import com.ncedu.nc_edu.dto.assemblers.ReviewAssembler;
 import com.ncedu.nc_edu.dto.resources.*;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.Recipe;
@@ -40,18 +40,18 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class RecipeController {
     private final RecipeService recipeService;
     private final RecipeAssembler recipeAssembler;
-    private final UserReviewAssembler userReviewAssembler;
+    private final ReviewAssembler reviewAssembler;
     private final RecipeStepAssembler recipeStepAssembler;
 
     public RecipeController(
             @Autowired RecipeService recipeService,
             @Autowired RecipeAssembler recipeAssembler,
-            @Autowired UserReviewAssembler userReviewAssembler,
+            @Autowired ReviewAssembler reviewAssembler,
             @Autowired RecipeStepAssembler recipeStepAssembler
     ) {
         this.recipeService = recipeService;
         this.recipeAssembler = recipeAssembler;
-        this.userReviewAssembler = userReviewAssembler;
+        this.reviewAssembler = reviewAssembler;
         this.recipeStepAssembler = recipeStepAssembler;
     }
 
@@ -79,23 +79,16 @@ public class RecipeController {
         return resource;
     }
 
-    @GetMapping(value = "/recipes/{id}/reviews")
-    public ResponseEntity<CollectionModel<UserReviewResource>> getReviews(@PathVariable UUID id) {
-        CollectionModel<UserReviewResource> resource = userReviewAssembler.toCollectionModel(recipeService.findReviewsById(id));
+    @GetMapping(value = "/recipes/{recipeId}/reviews")
+    public ResponseEntity<CollectionModel<ReviewResource>> getReviews(@PathVariable UUID recipeId) {
+        CollectionModel<ReviewResource> resource = reviewAssembler.toCollectionModel(recipeService.findReviewsByRecipeId(recipeId));
         return ResponseEntity.ok(resource);
     }
 
-    @PostMapping(value = "/recipes/{id}/reviews")
-    public ResponseEntity<RepresentationModel<UserReviewResource>> addReview(@PathVariable UUID id,
-                                                                  @RequestBody UserReviewResource reviewResource) {
-        UserReviewResource resource = userReviewAssembler.toModel(recipeService.addReview(id, reviewResource));
-        return ResponseEntity.ok(resource);
-    }
-
-    @GetMapping(value = "/recipes/{id}/reviews/{reviewId}")
-    public ResponseEntity<RepresentationModel<UserReviewResource>> getReviews(@PathVariable UUID id,
-                                                                          @PathVariable UUID reviewId) {
-        UserReviewResource resource = userReviewAssembler.toModel(recipeService.findReviewByIds(id, reviewId));
+    @PostMapping(value = "/recipes/{recipeId}/reviews")
+    public ResponseEntity<RepresentationModel<ReviewResource>> addReview(@PathVariable UUID recipeId,
+                                                                         @RequestBody @Valid ReviewResource reviewResource) {
+        ReviewResource resource = reviewAssembler.toModel(recipeService.addReview(recipeId, reviewResource));
         return ResponseEntity.ok(resource);
     }
 

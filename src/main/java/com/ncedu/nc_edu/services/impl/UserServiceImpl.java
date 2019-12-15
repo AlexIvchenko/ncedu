@@ -5,7 +5,7 @@ import com.ncedu.nc_edu.exceptions.AlreadyExistsException;
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.User;
-import com.ncedu.nc_edu.models.UserReview;
+import com.ncedu.nc_edu.models.Review;
 import com.ncedu.nc_edu.models.UserRole;
 import com.ncedu.nc_edu.repositories.UserRepository;
 import com.ncedu.nc_edu.repositories.UserRoleRepository;
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserReview> getReviewsById(UUID id) {
+    public List<Review> getReviewsById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("User with id " + id))
                 .getReviews();

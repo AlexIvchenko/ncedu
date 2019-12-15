@@ -6,6 +6,7 @@ import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
+import com.ncedu.nc_edu.repositories.ReviewRepository;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.Valid;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,7 @@ import static com.ncedu.nc_edu.models.Recipe.State.*;
 @Slf4j
 public class RecipeServiceImpl implements RecipeService {
     private final RecipeRepository recipeRepository;
+    private final ReviewRepository reviewRepository;
     private final TagService tagService;
     private final IngredientService ingredientService;
     private final SecurityAccessResolver securityAccessResolver;
@@ -36,10 +39,12 @@ public class RecipeServiceImpl implements RecipeService {
     @Autowired
     public RecipeServiceImpl(
             RecipeRepository recipeRepository,
+            ReviewRepository reviewRepository,
             TagService tagService,
             IngredientService ingredientService,
             SecurityAccessResolver securityAccessResolver) {
         this.recipeRepository = recipeRepository;
+        this.reviewRepository = reviewRepository;
         this.tagService = tagService;
         this.ingredientService = ingredientService;
         this.securityAccessResolver = securityAccessResolver;
@@ -582,22 +587,9 @@ public class RecipeServiceImpl implements RecipeService {
         return this.recipeRepository.save(recipe);
     }
 
-    public List<UserReview> findReviewsById(UUID id) {
-        return recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("receipt")).getReviews();
-    }
-
     @Override
-    public UserReview findReviewByIds(UUID receiptId, UUID reviewId) {
-        List<UserReview> reviews = recipeRepository.findById(receiptId).orElseThrow(() -> new EntityDoesNotExistsException("receipt"))
-                .getReviews().stream().filter(rev -> rev.getId().equals(reviewId)).collect(Collectors.toList());
-        if (reviews.size() == 0)
-            throw new EntityDoesNotExistsException("review");
-        return reviews.get(0);
-    }
-
-    @Override
-    public UserReview addReview(UUID recipeId, UserReviewResource userReviewResource) {
-        UserReview review = new UserReview();
+    public Review addReview(UUID recipeId, ReviewResource reviewResource) {
+        Review review = new Review();
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
         User user = securityAccessResolver.getUser();
         if (recipe.getReviews().stream().anyMatch(rev -> rev.getUser().getId().equals(user.getId()))) {
@@ -607,10 +599,10 @@ public class RecipeServiceImpl implements RecipeService {
         review.setUser(user);
         review.setRecipe(recipe);
         review.setCreated_on(new Date());
-        review.setRating(userReviewResource.getRating());
-        review.setReview(userReviewResource.getReview());
+        review.setRating(reviewResource.getRating());
+        review.setReviewText(reviewResource.getReviewText());
         recipe.getReviews().add(review);
-        recipe.setReviewsNumber(recipe.getReviewsNumber() + 1);
+        recipe.setReviewsNumber(recipe.getReviewsNumber() == null ? 1 : recipe.getReviewsNumber() + 1);
         if (recipe.getReviewsNumber() == 1) {
             recipe.setRating(review.getRating());
         } else {
@@ -618,6 +610,12 @@ public class RecipeServiceImpl implements RecipeService {
         }
         recipeRepository.save(recipe);
         return review;
+    }
+
+    @Override
+    public List<Review> findReviewsByRecipeId(UUID recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("recipe"));
+        return recipe.getReviews();
     }
 
     @Override

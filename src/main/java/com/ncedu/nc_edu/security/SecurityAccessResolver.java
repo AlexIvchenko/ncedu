@@ -24,6 +24,12 @@ public interface SecurityAccessResolver {
 
     boolean isSelfOrGranted(UUID id);
 
+    boolean isReviewOwner(UUID reviewId);
+
+    boolean isReviewOwnerOrGranted(UUID reviewId);
+
+    boolean isRecipeOwner(UUID recipeID);
+
     boolean isRecipeOwnerOrGranted(UUID recipeId);
 
     GrantedAuthority getHeadAuthority();

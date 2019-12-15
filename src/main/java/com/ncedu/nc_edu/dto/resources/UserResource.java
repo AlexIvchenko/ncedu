@@ -27,7 +27,7 @@ public class UserResource extends RepresentationModel<UserResource> implements O
     private String username;
 
     @JsonView({View.Owner.class, View.Moderator.class})
-    @Email(message = "Email must be a valid email")
+    @Email(message = "Email must be a valid email", regexp=".+@.+\\..+")
     private String email;
 
     @JsonView(View.Owner.class)

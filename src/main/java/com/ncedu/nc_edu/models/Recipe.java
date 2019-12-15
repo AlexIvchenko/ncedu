@@ -45,7 +45,7 @@ public class Recipe {
     private List<RecipeStep> steps;
 
     @OneToMany(mappedBy = "recipe", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<UserReview> reviews;
+    private List<Review> reviews;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<IngredientsRecipes> ingredientsRecipes;
