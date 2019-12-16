@@ -63,7 +63,8 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.add(linkTo(methodOn(RecipeController.class).getReviews(entity.getId())).withRel("reviews").withType("GET"));
 
         if (securityAccessResolver.getUser() != null
-            && entity.getReviews().stream().noneMatch(rev -> rev.getUser().getId().equals(securityAccessResolver.getUser().getId()))) {
+            && entity.getReviews().stream().noneMatch(rev -> rev.getUser().getId().equals(securityAccessResolver.getUser().getId()))
+            && !securityAccessResolver.getUser().getId().equals(entity.getOwner().getId())) {
             resource.add(linkTo(methodOn(RecipeController.class).addReview(entity.getId(), null)).withRel("add_review").withType("POST"));
         }
 
