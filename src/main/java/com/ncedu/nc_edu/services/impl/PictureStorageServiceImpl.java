@@ -2,7 +2,8 @@ package com.ncedu.nc_edu.services.impl;
 
 import com.ncedu.nc_edu.services.PictureStorageService;
 import io.minio.MinioClient;
-import io.minio.errors.*;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.MinioException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,9 +64,7 @@ public class PictureStorageServiceImpl implements PictureStorageService {
         try {
             this.minioClient.putObject(BUCKET_NAME, id.toString(), inputStream,
                     null, null, null, null);
-        } catch (InvalidBucketNameException | NoSuchAlgorithmException | IOException | InvalidKeyException |
-                NoResponseException | XmlPullParserException | ErrorResponseException | InternalException |
-                InvalidArgumentException | InsufficientDataException | InvalidResponseException ex) {
+        } catch (Exception ex) {
             throw new RuntimeException("Cannot upload file: " + ex.getMessage());
         }
 
@@ -76,12 +75,10 @@ public class PictureStorageServiceImpl implements PictureStorageService {
     public boolean existsById(UUID id) {
         try {
             this.minioClient.statObject(BUCKET_NAME, id.toString());
-        } catch (InvalidKeyException | NoSuchAlgorithmException | NoResponseException | InvalidResponseException |
-                XmlPullParserException | InvalidBucketNameException | InvalidArgumentException |
-                InsufficientDataException | InternalException | IOException ex) {
-            ex.printStackTrace();
-            return false;
         } catch (ErrorResponseException ex) {
+            return false;
+        } catch (Exception ex) {
+            ex.printStackTrace();
             return false;
         }
 
@@ -94,13 +91,11 @@ public class PictureStorageServiceImpl implements PictureStorageService {
 
         try {
             stream = this.minioClient.getObject(BUCKET_NAME, id.toString());
-        } catch (InvalidKeyException | NoResponseException | InvalidResponseException | XmlPullParserException |
-                InvalidBucketNameException | InvalidArgumentException | InsufficientDataException |
-                InternalException | IOException | NoSuchAlgorithmException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
         } catch (ErrorResponseException ex) {
             throw new EntityNotFoundException("Picture with id " + id.toString());
+        } catch (Exception  ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
 
         return stream;
