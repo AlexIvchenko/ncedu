@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,7 +108,7 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
-            case EDITABLE:
+            case DRAFT:
             case WAITING_FOR_APPROVAL:
                 recipe.setVisible(false);
                 recipe.setState(Recipe.State.DELETED);
@@ -151,7 +150,7 @@ public class RecipeServiceImpl implements RecipeService {
                 this.approveEditedRecipe(recipe);
                 return true;
 
-            case EDITABLE:
+            case DRAFT:
             case DELETED:
             case PUBLISHED:
                 return false;
@@ -161,7 +160,7 @@ public class RecipeServiceImpl implements RecipeService {
         }
     }
 
-    // Merge cloned with changes into original and delete cloned
+    // Merge cloned recipe with changes into original recipe and delete cloned recipe
     private void approveEditedRecipe(Recipe recipe) {
         Recipe editedRecipe = recipe.getClonedRef();
 
@@ -176,6 +175,7 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setProteins(editedRecipe.getProteins());
         recipe.setPrice(editedRecipe.getPrice());
         recipe.setName(editedRecipe.getName());
+        recipe.setPictureId(editedRecipe.getPictureId());
 
         recipe.setTags(new HashSet<>(editedRecipe.getTags()));
         recipe.setCookingMethods(new HashSet<>(editedRecipe.getCookingMethods()));
@@ -234,7 +234,7 @@ public class RecipeServiceImpl implements RecipeService {
 
         switch (recipe.getState()) {
             case WAITING_FOR_APPROVAL:
-                recipe.setState(EDITABLE);
+                recipe.setState(DRAFT);
                 return true;
 
             case EDITED:
@@ -242,7 +242,7 @@ public class RecipeServiceImpl implements RecipeService {
                 return true;
 
 
-            case EDITABLE:
+            case DRAFT:
             case DELETED:
             case PUBLISHED:
                 return false;
@@ -269,11 +269,11 @@ public class RecipeServiceImpl implements RecipeService {
 
         switch (recipe.getState()) {
             case WAITING_FOR_APPROVAL:
-                recipe.setState(EDITABLE);
+                recipe.setState(DRAFT);
                 this.recipeRepository.save(recipe);
                 return true;
 
-            case EDITABLE:
+            case DRAFT:
             case EDITED:
             case DELETED:
             case PUBLISHED:
@@ -312,7 +312,7 @@ public class RecipeServiceImpl implements RecipeService {
                 this.recipeRepository.save(editedRecipe);
                 return true;
 
-            case EDITABLE:
+            case DRAFT:
             case WAITING_FOR_APPROVAL:
             case DELETED:
             case PUBLISHED:
@@ -329,7 +329,7 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
-            case EDITABLE:
+            case DRAFT:
                 if (securityAccessResolver.getUser() == null) {
                     return false;
                 }
@@ -360,11 +360,11 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (oldRecipe.getState()) {
-            case EDITABLE:
+            case DRAFT:
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
             case WAITING_FOR_APPROVAL:
-                oldRecipe.setState(EDITABLE);
+                oldRecipe.setState(DRAFT);
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
 
@@ -426,6 +426,8 @@ public class RecipeServiceImpl implements RecipeService {
             oldRecipe.setTags(resource.getTags().stream()
                     .map(tagService::add).collect(Collectors.toSet()));
         }
+
+        oldRecipe.setPictureId(resource.getPictureId());
 
         if (resource.getIngredients() != null) {
             Set<IngredientsRecipes> ingredients = updateRecipeIngredients(resource, oldRecipe);
@@ -541,9 +543,10 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setCookingTime(resource.getCookingTime());
         recipe.setPrice(resource.getPrice());
         recipe.setReviewsNumber(0);
+        recipe.setPictureId(resource.getPictureId());
 
         // initial state
-        recipe.setState(Recipe.State.EDITABLE);
+        recipe.setState(Recipe.State.DRAFT);
         recipe.setVisible(false);
 
         if (resource.getCookingMethods() != null) {
@@ -583,7 +586,7 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe recipe = new Recipe(this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe")));
         recipe.setOwner(user);
-        recipe.setState(EDITABLE);
+        recipe.setState(DRAFT);
         return this.recipeRepository.save(recipe);
     }
 
