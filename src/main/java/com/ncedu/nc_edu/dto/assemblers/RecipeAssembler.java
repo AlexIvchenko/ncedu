@@ -49,7 +49,6 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.setCuisine(entity.getCuisine());
         resource.setOwner(entity.getOwner().getId());
         resource.setReviewsNumber(entity.getReviewsNumber());
-        resource.setPictureId(entity.getPictureId());
 
         resource.setTags(entity.getTags().stream()
                 .map(Tag::getName).collect(Collectors.toSet())
@@ -68,9 +67,10 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
             resource.add(linkTo(methodOn(PictureController.class).get(entity.getPictureId())).withRel("picture"));
         }
 
-        if (securityAccessResolver.getUser() != null
-            && (entity.getReviews() == null ||
-                    entity.getReviews().stream().noneMatch(rev -> rev.getUser().getId().equals(securityAccessResolver.getUser().getId())))) {
+        if (securityAccessResolver.getUser() != null &&
+                (entity.getReviews() == null ||
+            entity.getReviews().stream().noneMatch(rev -> rev.getUser().getId().equals(securityAccessResolver.getUser().getId()))
+            && !securityAccessResolver.getUser().getId().equals(entity.getOwner().getId()))) {
             resource.add(linkTo(methodOn(RecipeController.class).addReview(entity.getId(), null)).withRel("add_review").withType("POST"));
         }
 
