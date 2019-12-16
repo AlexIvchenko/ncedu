@@ -144,13 +144,7 @@ public class RecipeController {
             }
         }
 
-        log.debug(recipe.getInfo().toString());
-
-        RecipeResource resource = this.recipeAssembler.toModel(this.recipeService.create(recipe, user));
-
-        log.debug(resource.toString());
-
-        return resource;
+        return this.recipeAssembler.toModel(this.recipeService.create(recipe, user));
     }
 
     @PutMapping(value = "/recipes/{id}")
@@ -159,8 +153,6 @@ public class RecipeController {
             @PathVariable UUID id,
             @RequestBody @Valid RecipeWithStepsResource recipe
     ) {
-        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-
         if (recipe.getSteps() == null) {
             throw new RequestParseException("Recipe must contain at least 1 step");
         }
@@ -178,10 +170,7 @@ public class RecipeController {
 
     @DeleteMapping(value = "/recipes/{id}")
     public ResponseEntity<Void> remove(Authentication auth, @PathVariable UUID id) {
-        User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-
         this.recipeService.removeById(id);
-
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
