@@ -24,6 +24,8 @@ public interface SecurityAccessResolver {
 
     boolean isSelfOrGranted(UUID id);
 
+    boolean hasAnyReview(UUID recipeId);
+
     boolean isReviewOwner(UUID reviewId);
 
     boolean isReviewOwnerOrGranted(UUID reviewId);

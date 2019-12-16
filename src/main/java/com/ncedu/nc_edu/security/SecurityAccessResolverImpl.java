@@ -1,6 +1,7 @@
 package com.ncedu.nc_edu.security;
 
 import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole.UserRoles;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
@@ -70,6 +71,12 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver {
     public boolean isSelfOrGranted(UUID id) {
         User user = getUser();
         return isAdminOrModerator() || (user != null && user.getId().equals(id));
+    }
+
+    @Override
+    public boolean hasAnyReview(UUID recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("recipe"));
+        return reviewRepository.findByUserAndRecipe(getUser(), recipe).isEmpty();
     }
 
     @Override

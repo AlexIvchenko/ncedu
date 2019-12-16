@@ -4,6 +4,7 @@ import com.ncedu.nc_edu.controllers.RecipeController;
 import com.ncedu.nc_edu.controllers.ReviewController;
 import com.ncedu.nc_edu.controllers.UserController;
 import com.ncedu.nc_edu.dto.resources.ReviewResource;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.Review;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +35,14 @@ public class ReviewAssembler extends RepresentationModelAssemblerSupport<Review,
         resource.add(linkTo(methodOn(RecipeController.class).getById(null, entity.getRecipe().getId())).withRel("recipe").withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getUser().getId())).withRel("user").withType("GET"));
 
-        if (securityAccessResolver.isReviewOwnerOrGranted(entity.getId())) {
-            resource.add(linkTo(methodOn(ReviewController.class).deleteReview(entity.getId())).withRel("delete").withType("DELETE"));
+        if (entity.getRecipe().getState().equals(Recipe.State.PUBLISHED)) {
+            if (securityAccessResolver.isReviewOwnerOrGranted(entity.getId())) {
+                resource.add(linkTo(methodOn(ReviewController.class).deleteReview(entity.getId())).withRel("delete").withType("DELETE"));
+            }
+            if (securityAccessResolver.isReviewOwner(entity.getId())) {
+                resource.add(linkTo(methodOn(ReviewController.class).updateReview(entity.getId(), null)).withRel("update").withType("PUT"));
+            }
         }
-        if (securityAccessResolver.isReviewOwner(entity.getId())) {
-            resource.add(linkTo(methodOn(ReviewController.class).updateReview(entity.getId(), null)).withRel("update").withType("PUT"));
-        }
-
         return resource;
     }
 }
