@@ -81,7 +81,7 @@ public class Recipe {
     public enum State {
         // UNLISTED:
         WAITING_FOR_APPROVAL,
-        EDITABLE,
+        DRAFT,
         // PUBLIC:
         EDITED,
         PUBLISHED,
@@ -98,6 +98,8 @@ public class Recipe {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "originalRef")
     private Recipe clonedRef;
+
+    private UUID pictureId;
 
     @Column(name = "moderator_comment")
     private String moderatorComment;
@@ -152,7 +154,9 @@ public class Recipe {
         this.owner = null;
         this.price = recipe.price;
         this.proteins = recipe.proteins;
-        this.rating = recipe.rating;
+        this.rating = 0f;
+        this.reviewsNumber = 0;
+        this.pictureId = recipe.pictureId;
         this.steps = new ArrayList<>();
         recipe.steps.forEach(recipeStep -> {
             var tempStep = new RecipeStep();
