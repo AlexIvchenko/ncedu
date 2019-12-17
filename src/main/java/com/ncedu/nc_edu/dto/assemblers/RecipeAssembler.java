@@ -61,7 +61,11 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.add(linkTo(methodOn(RecipeController.class).getById(auth, entity.getId())).withSelfRel().withType("GET"));
         resource.add(linkTo(methodOn(RecipeController.class).getRecipeSteps(entity.getId())).withRel("steps").withType("GET"));
         resource.add(linkTo(methodOn(UserController.class).getById(entity.getOwner().getId())).withRel("owner").withType("GET"));
-        resource.add(linkTo(methodOn(RecipeController.class).getReviews(entity.getId())).withRel("reviews").withType("GET"));
+
+        if (entity.getReviews() != null && entity.getReviews().size() > 0) {
+            resource.add(linkTo(methodOn(RecipeController.class).getReviews(entity.getId())).withRel("reviews").withType("GET"));
+        }
+
 
         if (entity.getPictureId() != null) {
             resource.add(linkTo(methodOn(PictureController.class).get(entity.getPictureId())).withRel("picture"));
@@ -106,13 +110,11 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
                 resource.add(linkTo(methodOn(RecipeController.class).requestForApproval(entity.getId())).withRel("approve").withType("PUT"));
             }
 
-            resource.add(linkTo(methodOn(RecipeController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
             if (!entity.getState().equals(Recipe.State.DELETED)) {
+                resource.add(linkTo(methodOn(RecipeController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
                 resource.add(linkTo(methodOn(RecipeController.class).remove(auth, entity.getId())).withRel("remove").withType("DELETE"));
             }
         }
-
-        resource.add(linkTo(methodOn(RecipeController.class).create(auth, null)).withRel("create"));
 
         return resource;
     }
