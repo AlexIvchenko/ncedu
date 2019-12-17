@@ -1,18 +1,11 @@
 package com.ncedu.nc_edu.security;
 
 import com.ncedu.nc_edu.dto.resources.OwnableResource;
-import com.ncedu.nc_edu.dto.resources.RecipeResource;
-import com.ncedu.nc_edu.dto.resources.UserResource;
-import com.ncedu.nc_edu.models.Recipe;
-import com.ncedu.nc_edu.models.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -44,7 +37,7 @@ public class SecurityJsonViewControllerAdvice extends AbstractMappingJacksonResp
             if (bodyContainer.getValue() instanceof CollectionModel) {
                     return;
             }
-            if (Arrays.asList(bodyContainer.getValue().getClass().getInterfaces()).contains(OwnableResource.class)
+            if (bodyContainer.getValue() instanceof OwnableResource
                     && ((OwnableResource)bodyContainer.getValue()).getOwnerId().equals(securityAccessResolver.getUser().getId())) {
                 bodyContainer.setSerializationView(View.Owner.class);
             }

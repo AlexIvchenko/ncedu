@@ -63,6 +63,8 @@ public class RecipeResource extends RepresentationModel<RecipeResource> implemen
 
     private String moderatorComment;
 
+    private UUID pictureId;
+
     /**
      * Field only for returning. Should be never updated.
      */

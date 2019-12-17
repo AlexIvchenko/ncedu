@@ -1,8 +1,11 @@
 package com.ncedu.nc_edu.security;
 
+import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
+import com.ncedu.nc_edu.models.Recipe;
 import com.ncedu.nc_edu.models.User;
 import com.ncedu.nc_edu.models.UserRole.UserRoles;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
+import com.ncedu.nc_edu.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.Authentication;
@@ -17,9 +20,12 @@ import java.util.UUID;
 
 @Component
 public class SecurityAccessResolverImpl implements SecurityAccessResolver {
-    private RecipeRepository recipeRepository;
+    private final ReviewRepository reviewRepository;
+    private final RecipeRepository recipeRepository;
 
-    public SecurityAccessResolverImpl(@Autowired RecipeRepository recipeRepository) {
+    public SecurityAccessResolverImpl(@Autowired ReviewRepository reviewRepository,
+                                      @Autowired RecipeRepository recipeRepository) {
+        this.reviewRepository = reviewRepository;
         this.recipeRepository = recipeRepository;
     }
 
@@ -68,11 +74,35 @@ public class SecurityAccessResolverImpl implements SecurityAccessResolver {
     }
 
     @Override
-    public boolean isRecipeOwnerOrGranted(UUID recipeId) {
+    public boolean hasAnyReview(UUID recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("recipe"));
+        return reviewRepository.findByUserAndRecipe(getUser(), recipe).isEmpty();
+    }
+
+    @Override
+    public boolean isReviewOwner(UUID reviewId) {
         User user = getUser();
-        return isAdminOrModerator()
-                || user != null && recipeRepository.findById(recipeId)
-                .get().getOwner().getId().equals(user.getId());
+        return user != null && reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new EntityDoesNotExistsException("review"))
+                .getUser().getId().equals(user.getId());
+    }
+
+    @Override
+    public boolean isReviewOwnerOrGranted(UUID reviewId) {
+        return isAdminOrModerator() || isReviewOwner(reviewId);
+    }
+
+    @Override
+    public boolean isRecipeOwner(UUID recipeId) {
+        User user = getUser();
+        return  user != null && recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new EntityDoesNotExistsException("recipe"))
+                .getOwner().getId().equals(user.getId());
+    }
+
+    @Override
+    public boolean isRecipeOwnerOrGranted(UUID recipeId) {
+        return isAdminOrModerator() || isRecipeOwner(recipeId);
     }
 
     @Override

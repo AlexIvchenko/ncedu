@@ -11,7 +11,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "recipe_reviews", schema = "public")
-public class UserReview {
+public class Review {
     @Id
     @Type(type = "uuid-char")
     private UUID id;
@@ -26,13 +26,14 @@ public class UserReview {
 
     private Float rating;
 
-    private String review;
+    @Column(name = "review")
+    private String reviewText;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserReview that = (UserReview) o;
+        Review that = (Review) o;
         return id.equals(that.id);
     }
 
@@ -47,7 +48,7 @@ public class UserReview {
                 "id=" + id +
                 ", created_on=" + created_on +
                 ", rating=" + rating +
-                ", review='" + review + '\'' +
+                ", reviewText='" + reviewText + '\'' +
                 '}';
     }
 }

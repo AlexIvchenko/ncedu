@@ -6,6 +6,7 @@ import com.ncedu.nc_edu.exceptions.EntityDoesNotExistsException;
 import com.ncedu.nc_edu.exceptions.RequestParseException;
 import com.ncedu.nc_edu.models.*;
 import com.ncedu.nc_edu.repositories.RecipeRepository;
+import com.ncedu.nc_edu.repositories.ReviewRepository;
 import com.ncedu.nc_edu.security.SecurityAccessResolver;
 import com.ncedu.nc_edu.services.IngredientService;
 import com.ncedu.nc_edu.services.RecipeService;
@@ -29,6 +30,7 @@ import static com.ncedu.nc_edu.models.Recipe.State.*;
 @Slf4j
 public class RecipeServiceImpl implements RecipeService {
     private final RecipeRepository recipeRepository;
+    private final ReviewRepository reviewRepository;
     private final TagService tagService;
     private final IngredientService ingredientService;
     private final SecurityAccessResolver securityAccessResolver;
@@ -36,10 +38,12 @@ public class RecipeServiceImpl implements RecipeService {
     @Autowired
     public RecipeServiceImpl(
             RecipeRepository recipeRepository,
+            ReviewRepository reviewRepository,
             TagService tagService,
             IngredientService ingredientService,
             SecurityAccessResolver securityAccessResolver) {
         this.recipeRepository = recipeRepository;
+        this.reviewRepository = reviewRepository;
         this.tagService = tagService;
         this.ingredientService = ingredientService;
         this.securityAccessResolver = securityAccessResolver;
@@ -104,7 +108,7 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
-            case EDITABLE:
+            case DRAFT:
             case WAITING_FOR_APPROVAL:
                 recipe.setVisible(false);
                 recipe.setState(Recipe.State.DELETED);
@@ -146,7 +150,7 @@ public class RecipeServiceImpl implements RecipeService {
                 this.approveEditedRecipe(recipe);
                 return true;
 
-            case EDITABLE:
+            case DRAFT:
             case DELETED:
             case PUBLISHED:
                 return false;
@@ -156,7 +160,7 @@ public class RecipeServiceImpl implements RecipeService {
         }
     }
 
-    // Merge cloned with changes into original and delete cloned
+    // Merge cloned recipe with changes into original recipe and delete cloned recipe
     private void approveEditedRecipe(Recipe recipe) {
         Recipe editedRecipe = recipe.getClonedRef();
 
@@ -171,6 +175,7 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setProteins(editedRecipe.getProteins());
         recipe.setPrice(editedRecipe.getPrice());
         recipe.setName(editedRecipe.getName());
+        recipe.setPictureId(editedRecipe.getPictureId());
 
         recipe.setTags(new HashSet<>(editedRecipe.getTags()));
         recipe.setCookingMethods(new HashSet<>(editedRecipe.getCookingMethods()));
@@ -229,7 +234,7 @@ public class RecipeServiceImpl implements RecipeService {
 
         switch (recipe.getState()) {
             case WAITING_FOR_APPROVAL:
-                recipe.setState(EDITABLE);
+                recipe.setState(DRAFT);
                 return true;
 
             case EDITED:
@@ -237,7 +242,7 @@ public class RecipeServiceImpl implements RecipeService {
                 return true;
 
 
-            case EDITABLE:
+            case DRAFT:
             case DELETED:
             case PUBLISHED:
                 return false;
@@ -264,11 +269,11 @@ public class RecipeServiceImpl implements RecipeService {
 
         switch (recipe.getState()) {
             case WAITING_FOR_APPROVAL:
-                recipe.setState(EDITABLE);
+                recipe.setState(DRAFT);
                 this.recipeRepository.save(recipe);
                 return true;
 
-            case EDITABLE:
+            case DRAFT:
             case EDITED:
             case DELETED:
             case PUBLISHED:
@@ -307,7 +312,7 @@ public class RecipeServiceImpl implements RecipeService {
                 this.recipeRepository.save(editedRecipe);
                 return true;
 
-            case EDITABLE:
+            case DRAFT:
             case WAITING_FOR_APPROVAL:
             case DELETED:
             case PUBLISHED:
@@ -324,7 +329,7 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (recipe.getState()) {
-            case EDITABLE:
+            case DRAFT:
                 if (securityAccessResolver.getUser() == null) {
                     return false;
                 }
@@ -355,11 +360,11 @@ public class RecipeServiceImpl implements RecipeService {
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
 
         switch (oldRecipe.getState()) {
-            case EDITABLE:
+            case DRAFT:
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
             case WAITING_FOR_APPROVAL:
-                oldRecipe.setState(EDITABLE);
+                oldRecipe.setState(DRAFT);
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
 
@@ -421,6 +426,8 @@ public class RecipeServiceImpl implements RecipeService {
             oldRecipe.setTags(resource.getTags().stream()
                     .map(tagService::add).collect(Collectors.toSet()));
         }
+
+        oldRecipe.setPictureId(resource.getPictureId());
 
         if (resource.getIngredients() != null) {
             Set<IngredientsRecipes> ingredients = updateRecipeIngredients(resource, oldRecipe);
@@ -536,9 +543,10 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setCookingTime(resource.getCookingTime());
         recipe.setPrice(resource.getPrice());
         recipe.setReviewsNumber(0);
+        recipe.setPictureId(resource.getPictureId());
 
         // initial state
-        recipe.setState(Recipe.State.EDITABLE);
+        recipe.setState(Recipe.State.DRAFT);
         recipe.setVisible(false);
 
         if (resource.getCookingMethods() != null) {
@@ -578,26 +586,13 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe recipe = new Recipe(this.recipeRepository.findById(id)
                 .orElseThrow(() -> new EntityDoesNotExistsException("Recipe")));
         recipe.setOwner(user);
-        recipe.setState(EDITABLE);
+        recipe.setState(DRAFT);
         return this.recipeRepository.save(recipe);
     }
 
-    public List<UserReview> findReviewsById(UUID id) {
-        return recipeRepository.findById(id).orElseThrow(() -> new EntityDoesNotExistsException("receipt")).getReviews();
-    }
-
     @Override
-    public UserReview findReviewByIds(UUID receiptId, UUID reviewId) {
-        List<UserReview> reviews = recipeRepository.findById(receiptId).orElseThrow(() -> new EntityDoesNotExistsException("receipt"))
-                .getReviews().stream().filter(rev -> rev.getId().equals(reviewId)).collect(Collectors.toList());
-        if (reviews.size() == 0)
-            throw new EntityDoesNotExistsException("review");
-        return reviews.get(0);
-    }
-
-    @Override
-    public UserReview addReview(UUID recipeId, UserReviewResource userReviewResource) {
-        UserReview review = new UserReview();
+    public Review addReview(UUID recipeId, ReviewResource reviewResource) {
+        Review review = new Review();
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("Recipe"));
         User user = securityAccessResolver.getUser();
         if (recipe.getReviews().stream().anyMatch(rev -> rev.getUser().getId().equals(user.getId()))) {
@@ -607,10 +602,10 @@ public class RecipeServiceImpl implements RecipeService {
         review.setUser(user);
         review.setRecipe(recipe);
         review.setCreated_on(new Date());
-        review.setRating(userReviewResource.getRating());
-        review.setReview(userReviewResource.getReview());
+        review.setRating(reviewResource.getRating());
+        review.setReviewText(reviewResource.getReviewText());
         recipe.getReviews().add(review);
-        recipe.setReviewsNumber(recipe.getReviewsNumber() + 1);
+        recipe.setReviewsNumber(recipe.getReviewsNumber() == null ? 1 : recipe.getReviewsNumber() + 1);
         if (recipe.getReviewsNumber() == 1) {
             recipe.setRating(review.getRating());
         } else {
@@ -618,6 +613,12 @@ public class RecipeServiceImpl implements RecipeService {
         }
         recipeRepository.save(recipe);
         return review;
+    }
+
+    @Override
+    public List<Review> findReviewsByRecipeId(UUID recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityDoesNotExistsException("recipe"));
+        return recipe.getReviews();
     }
 
     @Override

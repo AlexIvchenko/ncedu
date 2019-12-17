@@ -53,7 +53,7 @@ public class User {
     private Set<UserRole> roles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<UserReview> reviews;
+    private List<Review> reviews;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private List<Recipe> recipes;

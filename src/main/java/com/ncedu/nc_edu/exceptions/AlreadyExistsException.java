@@ -8,7 +8,9 @@ public class AlreadyExistsException extends RuntimeException {
     private final String field;
 
     /**
-     * *Entity* with given *field* is already exists
+     * Generates exception with format: *Entity* with given *field* is already exists.
+     * @param entity string value of entity
+     * @param field string value of field
      */
     public AlreadyExistsException(String entity, String field) {
         super(entity + " with given " + field + " is already exists");

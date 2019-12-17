@@ -25,7 +25,10 @@ public class RecipeStepAssembler extends RepresentationModelAssemblerSupport<Rec
         resource.setPicture(entity.getPicture());
 
         resource.add(linkTo(methodOn(RecipeController.class).getRecipeSteps(entity.getId())).withRel("recipe"));
-        resource.add(linkTo(methodOn(PictureController.class).get(entity.getPicture())).withRel("picture"));
+
+        if (entity.getPicture() != null) {
+            resource.add(linkTo(methodOn(PictureController.class).get(entity.getPicture())).withRel("picture"));
+        }
 
         return resource;
     }
