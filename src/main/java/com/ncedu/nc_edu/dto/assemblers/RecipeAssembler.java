@@ -49,6 +49,7 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
         resource.setCuisine(entity.getCuisine());
         resource.setOwner(entity.getOwner().getId());
         resource.setReviewsNumber(entity.getReviewsNumber());
+        resource.setPictureId(entity.getPictureId());
 
         resource.setTags(entity.getTags().stream()
                 .map(Tag::getName).collect(Collectors.toSet())
