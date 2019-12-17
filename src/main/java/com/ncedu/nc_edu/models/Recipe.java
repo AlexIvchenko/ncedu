@@ -75,7 +75,18 @@ public class Recipe {
     public enum Cuisine {
         RUSSIAN,
         ITALIAN,
-        JAPANESE
+        JAPANESE,
+        GLOBAL,
+        INDIAN,
+        CHINESE,
+        FRENCH,
+        GERMAN,
+        GREEK,
+        AMERICAN,
+        MEXICAN,
+        THAI,
+        TURKISH,
+        UKRAINIAN
     }
 
     public enum State {
@@ -85,8 +96,8 @@ public class Recipe {
         // PUBLIC:
         EDITED,
         PUBLISHED,
-        // ACHIEVED:
-        DELETED
+        // ARCHIVED:
+        ARCHIVED
     }
 
     @Column(name = "is_public")
@@ -175,7 +186,6 @@ public class Recipe {
         }
 
         this.removeSteps();
-
         this.steps.addAll(steps);
     }
 

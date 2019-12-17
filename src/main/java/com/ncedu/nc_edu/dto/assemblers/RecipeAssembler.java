@@ -111,7 +111,7 @@ public class RecipeAssembler extends RepresentationModelAssemblerSupport<Recipe,
                 resource.add(linkTo(methodOn(RecipeController.class).requestForApproval(entity.getId())).withRel("approve").withType("PUT"));
             }
 
-            if (!entity.getState().equals(Recipe.State.DELETED)) {
+            if (!entity.getState().equals(Recipe.State.ARCHIVED)) {
                 resource.add(linkTo(methodOn(RecipeController.class).update(auth, entity.getId(), null)).withRel("update").withType("PUT"));
                 resource.add(linkTo(methodOn(RecipeController.class).remove(auth, entity.getId())).withRel("remove").withType("DELETE"));
             }

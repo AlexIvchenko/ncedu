@@ -111,11 +111,11 @@ public class RecipeServiceImpl implements RecipeService {
             case DRAFT:
             case WAITING_FOR_APPROVAL:
                 recipe.setVisible(false);
-                recipe.setState(Recipe.State.DELETED);
+                recipe.setState(Recipe.State.ARCHIVED);
                 this.recipeRepository.save(recipe);
                 return true;
 
-            case DELETED:
+            case ARCHIVED:
                 throw new EntityDoesNotExistsException("Recipe");
 
             case EDITED:
@@ -124,7 +124,7 @@ public class RecipeServiceImpl implements RecipeService {
             case PUBLISHED:
                 if (securityAccessResolver.isModerator()) {
                     recipe.setVisible(false);
-                    recipe.setState(Recipe.State.DELETED);
+                    recipe.setState(Recipe.State.ARCHIVED);
                     this.recipeRepository.save(recipe);
                     return true;
                 } else {
@@ -151,7 +151,7 @@ public class RecipeServiceImpl implements RecipeService {
                 return true;
 
             case DRAFT:
-            case DELETED:
+            case ARCHIVED:
             case PUBLISHED:
                 return false;
 
@@ -243,7 +243,7 @@ public class RecipeServiceImpl implements RecipeService {
 
 
             case DRAFT:
-            case DELETED:
+            case ARCHIVED:
             case PUBLISHED:
                 return false;
 
@@ -275,7 +275,7 @@ public class RecipeServiceImpl implements RecipeService {
 
             case DRAFT:
             case EDITED:
-            case DELETED:
+            case ARCHIVED:
             case PUBLISHED:
                 return false;
 
@@ -314,7 +314,7 @@ public class RecipeServiceImpl implements RecipeService {
 
             case DRAFT:
             case WAITING_FOR_APPROVAL:
-            case DELETED:
+            case ARCHIVED:
             case PUBLISHED:
                 return false;
 
@@ -343,7 +343,7 @@ public class RecipeServiceImpl implements RecipeService {
 
             case EDITED:
             case WAITING_FOR_APPROVAL:
-            case DELETED:
+            case ARCHIVED:
             case PUBLISHED:
                 return false;
 
@@ -368,7 +368,7 @@ public class RecipeServiceImpl implements RecipeService {
                 return this.updateDirectly(resource, resourceSteps, oldRecipe);
 
 
-            case DELETED:
+            case ARCHIVED:
                 throw new EntityDoesNotExistsException("Recipe");
 
             case EDITED:
