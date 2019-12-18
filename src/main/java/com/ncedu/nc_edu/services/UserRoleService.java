@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface UserRoleService {
     Set<UserRole> findRolesByUserId(UUID id);
+
     UserRole findById(UUID id) throws EntityDoesNotExistsException;
+
     UserRole findByRole(String name) throws EntityDoesNotExistsException;
 }

@@ -8,9 +8,14 @@ import java.util.UUID;
 
 public interface IngredientService {
     Ingredient findById(UUID id) throws EntityDoesNotExistsException;
+
     List<Ingredient> findByName(String pattern);
+
     boolean existsById(UUID id);
+
     Ingredient update(Ingredient ingredient) throws EntityDoesNotExistsException;
+
     Ingredient add(String name);
+
     List<Ingredient> findAll();
 }

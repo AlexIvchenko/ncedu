@@ -8,6 +8,5 @@ import com.ncedu.nc_edu.models.User;
 import java.util.Date;
 
 public interface RationItemService {
-
     RationItem create (User user, Date date, Recipe recipe, ItemCategory category);
 }

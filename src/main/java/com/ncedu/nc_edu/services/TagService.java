@@ -8,8 +8,10 @@ public interface TagService {
     List<Tag> findAll();
 
     Tag findByName(String name);
+
     List<Tag> findAllByNameContains(String name);
 
     boolean existsByName(String name);
+
     Tag add(String name);
 }
